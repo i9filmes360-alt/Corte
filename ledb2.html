@@ -1,850 +1,235 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WELLCON - MUDLOGGING WIRELESS</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <style>
-        :root {
-            --bg-color: #1E1E1E;
-            --card-color: #2B2B2B;
-            --btn-color: #0445dc;
-            --text-color: #FFFFFF;
-            --footer-color: #2B2B2B;
-            --logo-color: #00AEEF;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Arial', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background-color: var(--footer-color);
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--btn-color);
-            flex-wrap: wrap;
-        }
-        .logo { font-size: 1.2rem; font-weight: bold; color: var(--logo-color); }
-        .logo span {
-            color: var(--text-color);
-            font-size: 0.7rem;
-            margin-left: 8px;
-            font-weight: normal;
-            display: block;
-            margin-top: 2px;
-        }
-        .status-bar { text-align: right; font-size: 0.8rem; }
-        .status-indicator {
-            display: inline-block; width: 10px; height: 10px; border-radius: 50%;
-            background-color: #ff0000; margin-right: 5px; vertical-align: middle;
-        }
-        .status-indicator.connected { background-color: #00FF00; box-shadow: 0 0 6px #00FF00; }
-        .clock { font-size: 1rem; font-weight: bold; margin-top: 3px; }
-
-        main { flex: 1; padding: 15px; overflow-y: auto; }
-        .view { display: none; animation: fadeIn 0.3s; }
-        .view.active { display: flex; flex-direction: column; align-items: center; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* MENU GRID */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            width: 100%;
-            max-width: 1200px;
-            margin-top: 20px;
-        }
-        .menu-btn {
-            background-color: var(--btn-color);
-            color: white;
-            border: 3px solid #0336b0;
-            padding: 30px 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        .menu-btn:hover { background-color: #0336b0; transform: translateY(-2px); }
-        .menu-btn:active { transform: translateY(0); }
-        .menu-btn.main-action {
-            background-color: #E74C3C;
-            border-color: #c0392b;
-            grid-column: span 2;
-        }
-        .menu-btn.main-action:hover { background-color: #c0392b; }
-
-        /* CARDS */
-        .card {
-            background-color: var(--card-color);
-            border: 2px solid #444;
-            padding: 15px;
-            text-align: center;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-        }
-        .card-title { font-size: 1.2rem; margin-bottom: 10px; font-weight: bold; }
-        .value-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: #1A1A1A;
-            padding: 10px;
-            border: 2px solid #444;
-            min-width: 100px;
-            display: inline-block;
-            margin: 8px 0;
-        }
-        .sub-value { font-size: 0.9rem; color: #888; margin-top: 5px; font-weight: bold; }
-
-        .config-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin: 10px 0;
-        }
-        .config-row label { color: var(--text-color); font-size: 0.9rem; font-weight: bold; }
-        .config-row input {
-            background: #1A1A1A;
-            border: 1px solid #444;
-            color: var(--text-color);
-            padding: 5px 8px;
-            font-size: 0.9rem;
-            width: 70px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .config-row input:focus { outline: none; border-color: var(--btn-color); }
-
-        .action-btn {
-            background-color: #FFC107;
-            color: #000;
-            border: 2px solid #e0a800;
-            padding: 10px 18px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 6px 4px;
-            min-width: 100px;
-            transition: all 0.2s;
-        }
-        .action-btn:hover { background-color: #e0a800; }
-        .action-btn:active { transform: scale(0.95); }
-        .action-btn.sent {
-            background-color: #28a745 !important;
-            border-color: #218838 !important;
-            color: white !important;
-        }
-        .back-btn {
-            background-color: var(--btn-color);
-            color: white;
-            border: 2px solid #0336b0;
-            padding: 10px 18px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 12px;
-            width: 100%;
-            max-width: 280px;
-        }
-
-        .vu-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            height: 150px;
-            width: 30px;
-            background: #1A1A1A;
-            border: 1px solid #444;
-            padding: 8px 4px;
-            margin: 15px auto;
-            position: relative;
-        }
-        .vu-bar {
-            width: 100%;
-            background: #00FF00;
-            transition: height 0.3s ease-out, background 0.3s;
-            height: 0%;
-        }
-        .vu-label {
-            position: absolute;
-            top: 3px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            color: #888;
-        }
-        .vu-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-            text-shadow: 0 0 3px #000;
-        }
-
-        .progress-container {
-            width: 100%;
-            max-width: 400px;
-            height: 18px;
-            background: #1A1A1A;
-            border: 1px solid #444;
-            margin: 10px auto;
-        }
-        .progress-bar {
-            height: 100%;
-            background: #00FF00;
-            transition: width 0.3s ease-out;
-            width: 0%;
-        }
-
-        .bombas-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            width: 100%;
-        }
-        .bomba-card {
-            background: var(--card-color);
-            border: 2px solid #444;
-            padding: 10px 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .bomba-title { font-size: 1rem; font-weight: bold; margin-bottom: 5px; }
-        .bomba-ppm-label { font-size: 0.8rem; color: #888; font-weight: bold; }
-        .bomba-ppm {
-            font-size: 2.2rem;
-            font-weight: bold;
-            background: #1A1A1A;
-            border: 2px solid #444;
-            padding: 5px 10px;
-            color: #00FF00;
-            min-width: 80px;
-            margin: 5px 0;
-        }
-        .bomba-cont-label { font-size: 0.7rem; color: #888; font-weight: bold; margin-top: 5px; }
-        .bomba-cont {
-            font-size: 1.3rem;
-            font-weight: bold;
-            background: #1A1A1A;
-            border: 2px solid #444;
-            padding: 3px 8px;
-            color: #FFFFFF;
-            min-width: 70px;
-            margin: 3px 0;
-        }
-        .bomba-btn {
-            background-color: #FFC107;
-            color: #000;
-            border: 2px solid #e0a800;
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 8px;
-            width: 100%;
-            max-width: 90px;
-            transition: all 0.2s;
-        }
-        .bomba-btn:active { transform: scale(0.95); }
-        .bomba-btn.sent {
-            background-color: #28a745 !important;
-            border-color: #218838 !important;
-            color: white !important;
-        }
-
-        .dual-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .notification {
-            position: fixed;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(40, 167, 69, 0.95);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 5px;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 10000;
-            animation: slideDown 0.3s ease-out;
-        }
-        .notification.error { background: rgba(220, 53, 69, 0.95); }
-        @keyframes slideDown {
-            from { top: 50px; opacity: 0; }
-            to { top: 100px; opacity: 1; }
-        }
-
-        @media (max-width: 768px) {
-            .menu-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .menu-btn { padding: 20px 10px; font-size: 1rem; min-height: 80px; }
-            .menu-btn.main-action { grid-column: 1 / -1; }
-        }
-
-        @media (min-width: 768px) {
-            .card { padding: 25px; max-width: 800px; }
-            .card-title { font-size: 1.5rem; margin-bottom: 15px; }
-            .value-display { font-size: 4rem; min-width: 200px; padding: 15px; }
-            .sub-value { font-size: 1.1rem; }
-            .vu-container { height: 200px; width: 35px; }
-            .progress-container { max-width: 500px; height: 20px; }
-            .back-btn { width: auto; }
-            header { padding: 15px 20px; }
-            .logo { font-size: 1.5rem; }
-            .logo span { font-size: 0.9rem; display: inline; margin-left: 10px; margin-top: 0; }
-            .status-bar { font-size: 1rem; }
-            .clock { font-size: 1.2rem; }
-
-            .bomba-title { font-size: 1.3rem; }
-            .bomba-ppm { font-size: 3rem; min-width: 120px; padding: 10px 15px; }
-            .bomba-cont { font-size: 1.8rem; min-width: 100px; padding: 5px 12px; }
-            .bomba-ppm-label, .bomba-cont-label { font-size: 1rem; }
-            .bomba-btn { font-size: 1rem; padding: 10px 15px; max-width: 120px; }
-            .bombas-grid { gap: 20px; }
-            .bomba-card { padding: 15px 10px; }
-        }
-
-        @media (min-width: 1024px) {
-            .value-display { font-size: 5rem; }
-            .card-title { font-size: 1.8rem; }
-            .bomba-ppm { font-size: 3.5rem; }
-            .bomba-cont { font-size: 2rem; }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roleta Europeia</title>
+<style>
+:root{--bg:#0a1f17;--felt:#0d4a34;--gold:#d4af37;--red:#b3261e;--ink:#111;--ivory:#f4ecd8;--line:rgba(244,236,216,.5);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ivory);font-family:'Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;padding:16px}
+h1{font-size:1.6rem;margin:0;letter-spacing:.02em;color:var(--gold)}
+header{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:baseline;justify-content:space-between;max-width:1200px;margin:0 auto 16px}
+.stats{display:flex;gap:24px;font-size:1rem}
+.stats b{font-size:1.4rem;color:var(--ivory);margin-left:6px}
+.game{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(300px,340px) 1fr;gap:20px;align-items:start}
+@media(max-width:980px){.game{grid-template-columns:1fr}}
+.side{display:flex;flex-direction:column;align-items:center;gap:12px}
+canvas{width:100%;max-width:340px;aspect-ratio:1;display:block}
+#msg{min-height:3.2em;text-align:center;font-size:1.05rem;line-height:1.4}
+#hist{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;min-height:28px}
+#hist span{width:28px;height:28px;border-radius:4px;display:grid;place-items:center;font:700 13px sans-serif;color:#fff}
+.g{background:#1f7a3f}.r{background:var(--red)}.b{background:var(--ink)}
+.felt{background:var(--felt);border:6px solid #5a3a1a;border-radius:10px;padding:14px;box-shadow:inset 0 0 40px #0006}
+.scroll{overflow-x:auto;padding-bottom:6px}
+.board{position:relative;display:grid;grid-template-columns:54px repeat(12,1fr) 54px;grid-template-rows:repeat(3,58px) 42px 42px;min-width:680px;user-select:none}
+#nums{grid-column:2/14;grid-row:1/4;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(3,1fr);cursor:crosshair}
+.n,.o{display:flex;align-items:center;justify-content:center;border:1px solid var(--line);font-size:1.15rem;font-weight:700;cursor:pointer;text-align:center;line-height:1.1}
+.n{cursor:crosshair}
+.n.r{background:var(--red)}.n.b{background:var(--ink)}.n.g{background:#1f7a3f}
+.o:hover{background:rgba(255,255,255,.12)}
+.o.rd{background:var(--red)}.o.bk{background:var(--ink)}
+.o.rd:hover,.o.bk:hover{filter:brightness(1.3)}
+.hl{filter:brightness(1.6)}
+.win{box-shadow:inset 0 0 0 4px var(--gold);filter:brightness(1.4)}
+.chip{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;display:grid;place-items:center;font:700 11px sans-serif;border:3px dashed rgba(255,255,255,.85);box-shadow:0 2px 5px #000a;pointer-events:none;z-index:3}
+.c1{background:#e8e4d8;color:#222}.c5{background:#c0392b}.c25{background:#27ae60}.c100{background:#222}.c500{background:#7d3c98}
+.tray{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.tray .chip{position:static;margin:0;width:46px;height:46px;font-size:14px;pointer-events:auto;cursor:pointer;border:4px dashed rgba(255,255,255,.85)}
+.tray .chip.sel{outline:3px solid var(--gold);outline-offset:3px}
+button{font:inherit;color:var(--ivory);background:#1b2b24;border:1px solid var(--gold);border-radius:6px;padding:8px 14px;cursor:pointer}
+button:hover:not(:disabled){background:#27402f}
+button:disabled{opacity:.4;cursor:not-allowed}
+#spin{background:var(--gold);color:#1a1405;font-weight:700;font-size:1.1rem;padding:10px 26px}
+#spin:hover:not(:disabled){background:#e6c34d}
+.tip{font-size:.85rem;opacity:.75;margin-top:10px;line-height:1.45}
+</style>
 </head>
 <body>
-
 <header>
-    <div class="logo">
-        WELLCON
-        <span>SISTEMA DE TRANSMISSÃO MUDLOGGING</span>
-    </div>
-    <div class="status-bar">
-        <div>
-            <span id="status-dot" class="status-indicator"></span>
-            <span id="status-text">Desconectado</span>
-        </div>
-        <div id="clock" class="clock">00:00:00</div>
-    </div>
+<h1>Roleta Europeia</h1>
+<div class="stats"><span>Fichas<b id="bal">1000</b></span><span>Aposta<b id="tot">0</b></span><button id="mute">🔊 Som</button></div>
 </header>
-
-<main>
-    <!-- MENU PRINCIPAL -->
-    <div id="view-menu" class="view active">
-        <div class="menu-grid">
-            <button class="menu-btn" onclick="showView('view-bombas')">🚀 BOMBAS</button>
-            <button class="menu-btn" onclick="showView('view-rpm-mesa')">🔄 RPM MESA</button>
-            <button class="menu-btn" onclick="showView('view-rpm-desgas')">🔄 RPM DESGAS</button>
-            <button class="menu-btn" onclick="showView('view-profundidade')">📏 PROFUND</button>
-
-            <button class="menu-btn" onclick="showView('view-gas')">💨 GÁS</button>
-            <button class="menu-btn main-action" onclick="showView('view-gas-fisico')">🔥 GÁS FÍSICO</button>
-            <button class="menu-btn" onclick="showView('view-pressao')">📊 PRESSÃO</button>
-
-            <button class="menu-btn" onclick="showView('view-torque')">🔧 TORQUE</button>
-            <button class="menu-btn" onclick="showView('view-temp')">🌡️ TEMP</button>
-        </div>
-    </div>
-
-    <!-- TELA BOMBAS -->
-    <div id="view-bombas" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #FF6B35">🚀 BOMBAS 1 e 2 - PPM</div>
-            <div class="bombas-grid">
-                <div class="bomba-card">
-                    <div class="bomba-title" style="color: #FF6B35">🚀 BOMBA 1</div>
-                    <div class="bomba-ppm-label">PPM</div>
-                    <div id="val-ppm1" class="bomba-ppm">0</div>
-                    <div class="bomba-cont-label">CONTAGEM</div>
-                    <div id="val-cont1" class="bomba-cont">0</div>
-                    <button class="bomba-btn" onclick="zerarBomba1(this)">ZERAR</button>
-                </div>
-                <div class="bomba-card">
-                    <div class="bomba-title" style="color: #00B4D8">💧 BOMBA 2</div>
-                    <div class="bomba-ppm-label">PPM</div>
-                    <div id="val-ppm2" class="bomba-ppm">0</div>
-                    <div class="bomba-cont-label">CONTAGEM</div>
-                    <div id="val-cont2" class="bomba-cont">0</div>
-                    <button class="bomba-btn" onclick="zerarBomba2(this)">ZERAR</button>
-                </div>
-            </div>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA RPM MESA -->
-    <div id="view-rpm-mesa" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #00B4D8">🔄 RPM DA MESA ROTATIVA</div>
-            <div class="sub-value">RPM</div>
-            <div id="val-rpm-mesa" class="value-display" style="color: #00FF00">0</div>
-            <div class="sub-value">Contagem de Pulsos: <span id="val-cont-rpm-mesa" style="color: white; font-size: 1.2rem;">0</span></div>
-            <button class="action-btn" onclick="zerarRPM_Mesa(this)">ZERAR</button>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA RPM DESGASEIFICADOR -->
-    <div id="view-rpm-desgas" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #9B59B6">🔄 RPM DO DESGASEIFICADOR</div>
-            <div class="sub-value">RPM</div>
-            <div id="val-rpm-desgas" class="value-display" style="color: #9B59B6">0</div>
-            <div class="sub-value">Contagem de Pulsos: <span id="val-cont-rpm-desgas" style="color: white; font-size: 1.2rem;">0</span></div>
-            <button class="action-btn" onclick="zerarRPM_Desgas(this)">ZERAR</button>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA PROFUNDIDADE -->
-    <div id="view-profundidade" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #FFD700">📏 PROFUNDIDADE</div>
-            <div class="sub-value">MODO ATUAL: <span id="val-modo" style="color: #FF6B35">CONTAGEM</span></div>
-            <div id="val-prof" class="value-display" style="color: #FFD700">0 m</div>
-            <div style="margin: 10px 0; color: white; font-size: 0.8rem; line-height: 1.4;">
-                Para usar a profundidade, pressione os dois botões juntos por 4 segundos<br>
-                <span style="color: #888; font-size: 0.7rem;">SENSOR 2 + SENSOR 1 = INCREMENTAR | SENSOR 1 + SENSOR 2 = DECREMENTAR</span>
-            </div>
-            <button class="action-btn" onclick="zerarProfundidade(this)">ZERAR</button>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA GÁS -->
-    <div id="view-gas" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #FF6B35">💨 DETECTOR DE GÁS</div>
-            <div class="config-row">
-                <label for="gas-max">Máx:</label>
-                <input type="number" id="gas-max" value="100" onchange="atualizarGasMax()">
-                <label for="gas-unit">Unidade:</label>
-                <input type="text" id="gas-unit" value="UGT" onchange="atualizarGasUnit()">
-            </div>
-            <div id="val-gas" class="value-display" style="color: #00FF00">0 UGT</div>
-            <div class="progress-container">
-                <div id="progress-gas" class="progress-bar"></div>
-            </div>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA PRESSÃO -->
-    <div id="view-pressao" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #00B4D8">📊 SENSOR DE PRESSÃO</div>
-            <div id="val-press" class="value-display" style="color: #00FF00">0.0 PSI</div>
-            <div class="progress-container">
-                <div id="progress-press" class="progress-bar" style="background: #00B4D8;"></div>
-            </div>
-            <button class="action-btn" onclick="taraPressao(this)">TARA</button>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA TORQUE -->
-    <div id="view-torque" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #4ECDC4">🔧 SENSOR DE TORQUE</div>
-            <div id="val-torque" class="value-display" style="color: #4ECDC4">0.0 Nm</div>
-            <div class="progress-container">
-                <div id="progress-torque" class="progress-bar" style="background: #4ECDC4;"></div>
-            </div>
-            <button class="action-btn" onclick="taraTorque(this)">TARA</button>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA TEMPERATURA -->
-    <div id="view-temp" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #FF6B6B">🌡️ SENSOR DE TEMPERATURA</div>
-            <div id="val-temp" class="value-display" style="color: #FF6B6B">0.0 °C</div>
-            <div class="progress-container">
-                <div id="progress-temp" class="progress-bar" style="background: #FF6B6B;"></div>
-            </div>
-            <button class="action-btn" onclick="taraTemp(this)">TARA</button>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-
-    <!-- TELA GÁS FÍSICO -->
-    <div id="view-gas-fisico" class="view">
-        <div class="card">
-            <div class="card-title" style="color: #E74C3C">🔥 GÁS FÍSICO</div>
-            <div class="dual-grid">
-                <div>
-                    <div class="sub-value">UGT</div>
-                    <div id="val-ugt" class="value-display" style="color: #00FF00; font-size: 2.5rem;">0</div>
-                    <div class="vu-container">
-                        <div class="vu-label">VU</div>
-                        <div id="vu-ugt" class="vu-bar"></div>
-                        <div id="vu-ugt-text" class="vu-text">0%</div>
-                    </div>
-                </div>
-                <div>
-                    <div class="sub-value">TC</div>
-                    <div id="val-tc" class="value-display" style="color: #00FF00; font-size: 2.5rem;">0</div>
-                    <div class="vu-container">
-                        <div class="vu-label">VU</div>
-                        <div id="vu-tc" class="vu-bar"></div>
-                        <div id="vu-tc-text" class="vu-text">0%</div>
-                    </div>
-                </div>
-            </div>
-            <button class="back-btn" onclick="showView('view-menu')">← VOLTAR AO MENU</button>
-        </div>
-    </div>
-</main>
-
+<div class="game">
+<div class="side">
+<canvas id="wheel" width="680" height="680" aria-label="Roda da roleta"></canvas>
+<div id="msg">Escolha uma ficha, clique na mesa para apostar e gire a roda.</div>
+<button id="spin">Girar</button>
+<div id="hist" aria-label="Últimos números"></div>
+</div>
+<div>
+<div class="felt">
+<div class="scroll"><div class="board" id="board">
+<div id="nums"></div>
+</div></div>
+<div class="tray" id="tray"></div>
+<div class="tray">
+<button id="undo">Desfazer</button><button id="clear">Limpar</button><button id="dbl">Dobrar</button><button id="rep">Repetir aposta</button><button id="reset">Reiniciar</button>
+</div>
+</div>
+<p class="tip">Clique no centro de um número para o pleno (paga 35:1). Nas bordas: cavalo entre 2 números (17:1), rua na borda de baixo (11:1), quadra no cruzamento de 4 números (8:1) e linha dupla na borda de baixo entre duas ruas (5:1). Junto ao zero: trio (11:1) e primeira quadra (8:1). Colunas e dúzias pagam 2:1; vermelho/preto, par/ímpar e 1–18/19–36 pagam 1:1.</p>
+</div>
+</div>
 <script>
-    /* ---------- CONFIGURAÇÃO MQTT ---------- */
-    const MQTT_BROKER = "broker.emqx.io";
-    const USE_SSL = (location.protocol === "https:");
-    const MQTT_PORT = USE_SSL ? 8084 : 8083;   // 8083 = ws, 8084 = wss
-    const DEVICE_ID = "esp32_wellguard_station01";
-    const TOPIC_DADOS = `wellguard/${DEVICE_ID}/dados`;
-    const TOPIC_COMANDOS = `wellguard/${DEVICE_ID}/comandos`;
-    const clientID = "web_client_" + Math.random().toString(16).substr(2, 8);
-    const client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, "/mqtt", clientID);
+const $=s=>document.querySelector(s);
+const ORDER=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const RED=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const colr=n=>n===0?'g':RED.has(n)?'r':'b';
+const CN={g:'verde',r:'vermelho',b:'preto'};
+const F={z:n=>n===0,c3:n=>n>0&&n%3===0,c2:n=>n%3===2,c1:n=>n%3===1,d1:n=>n>=1&&n<=12,d2:n=>n>=13&&n<=24,d3:n=>n>=25,lo:n=>n>=1&&n<=18,ev:n=>n>0&&n%2===0,rd:n=>RED.has(n),bk:n=>n>0&&!RED.has(n),od:n=>n%2===1,hi:n=>n>=19};
+F.od=n=>n%2===1;
+const PAY={z:35,c1:2,c2:2,c3:2,d1:2,d2:2,d3:2,lo:1,ev:1,rd:1,bk:1,od:1,hi:1};
+const LAB={z:'Zero',c1:'Coluna 1',c2:'Coluna 2',c3:'Coluna 3',d1:'1ª dúzia',d2:'2ª dúzia',d3:'3ª dúzia',lo:'1–18',ev:'Par',rd:'Vermelho',bk:'Preto',od:'Ímpar',hi:'19–36'};
+const PL={1:35,2:17,3:11,4:8,6:5};
+const NAME={1:'Pleno',2:'Cavalo',3:'Rua',4:'Quadra',6:'Linha dupla'};
+const board=$('#board'),nums=$('#nums');
+let bal=1000,chip=5,bets={},stack=[],last=null,busy=false,wA=0,bA=0;
 
-    /* ---------- ESTADO ---------- */
-    // Offsets de tara (nomes DIFERENTES das funções taraXxx)
-    let offsetPressao = 0, offsetTorque = 0, offsetTemp = 0;
-    let brutoPressao = 0, brutoTorque = 0, brutoTemp = 0;
-    let gasMax = 100;
-    let gasUnit = "UGT";
-    let ultimoSensorAna = 0;
-    let conectando = false;
+// monta a mesa
+for(let r=0;r<3;r++)for(let c=0;c<12;c++){const n=3*c+3-r,d=document.createElement('div');d.className='n '+colr(n);d.dataset.n=n;d.textContent=n;nums.append(d)}
+[['z','0','1','1/4','n g'],['c3','2:1','14','1','o'],['c2','2:1','14','2','o'],['c1','2:1','14','3','o'],
+['d1','1ª dúzia','2/6','4','o'],['d2','2ª dúzia','6/10','4','o'],['d3','3ª dúzia','10/14','4','o'],
+['lo','1–18','2/4','5','o'],['ev','Par','4/6','5','o'],['rd','Vermelho','6/8','5','o rd'],['bk','Preto','8/10','5','o bk'],['od','Ímpar','10/12','5','o'],['hi','19–36','12/14','5','o']
+].forEach(([id,t,gc,gr,cl])=>{const d=document.createElement('div');d.className=cl;d.dataset.bet=id;d.style.gridColumn=gc;d.style.gridRow=gr;d.textContent=t;if(id==='z')d.dataset.n=0;board.append(d)});
 
-    function $(id) { return document.getElementById(id); }
+// descobre a aposta pela posição do clique (u: colunas 0–12, v: linhas 0–3)
+function resolve(u,v){
+ const t=.2,c=Math.min(11,Math.floor(u)),r=Math.min(2,Math.floor(v)),a=u-c,b=v-r;
+ let bx=-1,by=-1;
+ if(a<t)bx=c;else if(a>1-t)bx=c+1;
+ if(b<t)by=r;else if(b>1-t)by=r+1;
+ if(bx===12)bx=-1;if(by===0)by=-1;
+ const N=(cc,rr)=>3*cc+3-rr;let s;
+ if(bx>=0&&by>=0){
+  if(bx===0)s=by===3?[0,1,2,3]:[0,N(0,by-1),N(0,by)];
+  else if(by===3)s=[N(bx-1,0),N(bx-1,1),N(bx-1,2),N(bx,0),N(bx,1),N(bx,2)];
+  else s=[N(bx-1,by-1),N(bx,by-1),N(bx-1,by),N(bx,by)];
+ }else if(bx>=0)s=bx===0?[0,N(0,r)]:[N(bx-1,r),N(bx,r)];
+ else if(by>=0)s=by===3?[N(c,0),N(c,1),N(c,2)]:[N(c,by-1),N(c,by)];
+ else s=[N(c,r)];
+ s.sort((x,y)=>x-y);
+ const nm=s.length===3&&s[0]===0?'Trio':s.length===4&&s[0]===0?'Primeira quadra':NAME[s.length];
+ return{key:s.join('-'),nums:s,pay:PL[s.length],label:nm+' '+s.join('‑'),u:bx>=0?bx:c+.5,v:by>=0?by:r+.5};
+}
+function hot(e){const R=nums.getBoundingClientRect();return resolve((e.clientX-R.left)/R.width*12,(e.clientY-R.top)/R.height*3)}
+function outDef(id){const ns=[];for(let n=0;n<=36;n++)if(F[id](n))ns.push(n);return{key:'o'+id,nums:ns,pay:PAY[id],label:LAB[id],el:`[data-bet="${id}"]`}}
 
-    /* ---------- GÁS ---------- */
-    function atualizarGasMax() {
-        const input = $('gas-max');
-        const valor = parseFloat(input.value);
-        if (!isNaN(valor) && valor > 0) { gasMax = valor; renderSensores(); }
-        else { input.value = gasMax; }
-    }
+function place(d){
+ if(busy)return;
+ if(chip>bal){msg('Fichas insuficientes para essa ficha.');return}
+ clearWin();
+ const b=bets[d.key]||(bets[d.key]={...d,amt:0});
+ b.amt+=chip;bal-=chip;stack.push({k:d.key,v:chip});chipSound();
+ render();
+}
+board.addEventListener('click',e=>{
+ if(e.target.closest('#nums'))return place(hot(e));
+ const o=e.target.closest('[data-bet]');if(o)place(outDef(o.dataset.bet));
+});
+nums.addEventListener('mousemove',e=>{clearHl();hot(e).nums.forEach(n=>$(`.n[data-n="${n}"]`)?.classList.add('hl'));if(hot(e).nums.includes(0))$('#board [data-bet=z]').classList.add('hl')});
+nums.addEventListener('mouseleave',clearHl);
+function clearHl(){document.querySelectorAll('.hl').forEach(x=>x.classList.remove('hl'))}
+function clearWin(){document.querySelectorAll('.win').forEach(x=>x.classList.remove('win'))}
 
-    function atualizarGasUnit() {
-        const input = $('gas-unit');
-        const valor = input.value.trim();
-        if (valor.length > 0) { gasUnit = valor; renderSensores(); }
-        else { input.value = gasUnit; }
-    }
+const TIERS=[500,100,25,5,1];
+function render(){
+ board.querySelectorAll('.chip').forEach(x=>x.remove());
+ let tot=0;
+ for(const b of Object.values(bets)){
+  tot+=b.amt;
+  let x,y;
+  if(b.el){const e=$(b.el);x=e.offsetLeft+e.offsetWidth/2;y=e.offsetTop+e.offsetHeight/2}
+  else{x=nums.offsetLeft+b.u/12*nums.offsetWidth;y=nums.offsetTop+b.v/3*nums.offsetHeight}
+  const c=document.createElement('div');
+  c.className='chip c'+TIERS.find(t=>b.amt>=t);
+  c.style.left=x+'px';c.style.top=y+'px';
+  c.textContent=b.amt>=1000?(b.amt/1000).toFixed(b.amt%1000?1:0)+'k':b.amt;
+  c.title=b.label+' · paga '+b.pay+':1';
+  board.append(c);
+ }
+ $('#bal').textContent=bal;$('#tot').textContent=tot;
+ $('#spin').disabled=busy||!tot;
+ ['undo','clear','dbl'].forEach(i=>$('#'+i).disabled=busy||!tot);
+ $('#rep').disabled=busy||tot>0||!last;
+}
+function msg(t){$('#msg').innerHTML=t}
 
-    /* ---------- RENDER DOS SENSORES ANALÓGICOS ---------- */
-    function renderSensores() {
-        const v = ultimoSensorAna;
+// fichas
+[1,5,25,100,500].forEach(v=>{const c=document.createElement('div');c.className='chip c'+v+(v===chip?' sel':'');c.textContent=v;c.onclick=()=>{chip=v;document.querySelectorAll('#tray .chip').forEach(x=>x.classList.toggle('sel',x===c))};$('#tray').append(c)});
 
-        // Gás
-        const gas = Math.floor((v / 1023.0) * gasMax);
-        $('val-gas').innerText = gas + " " + gasUnit;
-        $('progress-gas').style.width = Math.min((gas / gasMax) * 100, 100) + "%";
+$('#undo').onclick=()=>{const s=stack.pop();if(!s)return;const b=bets[s.k];b.amt-=s.v;bal+=s.v;if(!b.amt)delete bets[s.k];render()};
+$('#clear').onclick=()=>{for(const b of Object.values(bets))bal+=b.amt;bets={};stack=[];render()};
+$('#dbl').onclick=()=>{const t=Object.values(bets).reduce((s,b)=>s+b.amt,0);if(t>bal){msg('Fichas insuficientes para dobrar.');return}for(const b of Object.values(bets)){stack.push({k:b.key,v:b.amt});b.amt*=2}bal-=t;render()};
+$('#rep').onclick=()=>{const t=last.reduce((s,b)=>s+b.amt,0);if(t>bal){msg('Fichas insuficientes para repetir.');return}clearWin();last.forEach(b=>{bets[b.key]={...b};stack.push({k:b.key,v:b.amt})});bal-=t;render()};
+$('#reset').onclick=()=>{if(busy)return;bal=1000;bets={};stack=[];last=null;$('#hist').innerHTML='';clearWin();msg('Jogo reiniciado com 1000 fichas.');render()};
+addEventListener('resize',render);
 
-        // Pressão (4-20mA, 0-1000 PSI)
-        const tensao = (v / 1023.0) * 5.0;
-        let corrente = 4.0 + (tensao - 1.0) * (16.0 / 4.0);
-        corrente = Math.max(4.0, Math.min(20.0, corrente));
-        brutoPressao = ((corrente - 4.0) / 16.0) * 1000;
-        const pressao = Math.max(0, brutoPressao - offsetPressao);
-        $('val-press').innerText = pressao.toFixed(1) + " PSI";
-        $('progress-press').style.width = Math.min((pressao / 1000) * 100, 100) + "%";
+// som (sintetizado no navegador)
+let AC=null,NB=null,muted=false,roll=null;
+function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C()}if(AC.state==='suspended')AC.resume();return AC}
+function nbuf(a){if(!NB){NB=a.createBuffer(1,a.sampleRate,a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return NB}
+function click(v,f,len){if(muted)return;const a=ac();if(!a)return;const s=a.createBufferSource();s.buffer=nbuf(a);const fl=a.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=3;const g=a.createGain(),t=a.currentTime;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+len);s.connect(fl);fl.connect(g);g.connect(a.destination);s.start(t,Math.random()*.5,len+.02)}
+function tone(f,d,len,v,type){if(muted)return;const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+d;o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+len);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+len+.05)}
+function rollStart(){const a=ac();if(!a||muted)return;const s=a.createBufferSource();s.buffer=nbuf(a);s.loop=true;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=900;f.Q.value=1.5;const g=a.createGain();g.gain.value=0;s.connect(f);f.connect(g);g.connect(a.destination);s.start();roll={s,f,g}}
+function rollSet(sp){if(!roll)return;const t=AC.currentTime;roll.g.gain.setTargetAtTime(.22*sp,t,.05);roll.f.frequency.setTargetAtTime(500+900*sp,t,.05)}
+function rollStop(){if(!roll)return;const r=roll;roll=null;r.g.gain.setTargetAtTime(0,AC.currentTime,.05);setTimeout(()=>r.s.stop(),300)}
+const chime=()=>[660,880,1320].forEach((f,i)=>tone(f,i*.11,.5,.18));
+const thud=()=>tone(110,0,.35,.3,'triangle');
+const chipSound=()=>{click(.5,3500,.06);setTimeout(()=>click(.35,2500,.05),55)};
+$('#mute').onclick=()=>{muted=!muted;$('#mute').textContent=muted?'🔇 Mudo':'🔊 Som';if(muted)rollStop()};
+// roda
+const cv=$('#wheel'),ctx=cv.getContext('2d'),SEG=2*Math.PI/37,TAU=2*Math.PI;
+function draw(wa,ba,br){
+ const S=cv.width,cx=S/2,k=S/340;ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,340,340);
+ const C=170;
+ ctx.fillStyle='#4a2e14';ctx.beginPath();ctx.arc(C,C,168,0,TAU);ctx.fill();
+ ctx.fillStyle='#8a6a2a';ctx.beginPath();ctx.arc(C,C,158,0,TAU);ctx.fill();
+ for(let i=0;i<37;i++){
+  const n=ORDER[i],a0=wa+(i-.5)*SEG-Math.PI/2,a1=wa+(i+.5)*SEG-Math.PI/2;
+  ctx.beginPath();ctx.arc(C,C,152,a0,a1);ctx.arc(C,C,104,a1,a0,true);ctx.closePath();
+  ctx.fillStyle=n===0?'#1f7a3f':RED.has(n)?'#b3261e':'#151515';ctx.fill();
+  ctx.strokeStyle='#d4af37';ctx.lineWidth=.8;ctx.stroke();
+  ctx.save();ctx.translate(C,C);ctx.rotate(wa+i*SEG);ctx.translate(0,-134);
+  ctx.fillStyle='#f4ecd8';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n,0,0);ctx.restore();
+ }
+ ctx.fillStyle='#2a1a0a';ctx.beginPath();ctx.arc(C,C,104,0,TAU);ctx.fill();
+ ctx.fillStyle='#0d4a34';ctx.beginPath();ctx.arc(C,C,92,0,TAU);ctx.fill();
+ ctx.strokeStyle='#d4af37';ctx.lineWidth=3;
+ for(let j=0;j<4;j++){const a=wa+j*Math.PI/2;ctx.beginPath();ctx.moveTo(C,C);ctx.lineTo(C+70*Math.sin(a),C-70*Math.cos(a));ctx.stroke()}
+ ctx.fillStyle='#d4af37';ctx.beginPath();ctx.arc(C,C,12,0,TAU);ctx.fill();
+ ctx.fillStyle='#f4ecd8';ctx.shadowColor='#000';ctx.shadowBlur=4;
+ ctx.beginPath();ctx.arc(C+br*Math.sin(ba),C-br*Math.cos(ba),6,0,TAU);ctx.fill();ctx.shadowBlur=0;
+ ctx.fillStyle='#d4af37';ctx.beginPath();ctx.moveTo(C-9,2);ctx.lineTo(C+9,2);ctx.lineTo(C,20);ctx.fill();
+}
+draw(0,0,118);
 
-        // Torque (0-500 Nm)
-        brutoTorque = (v / 1023.0) * 500;
-        const torque = Math.max(0, brutoTorque - offsetTorque);
-        $('val-torque').innerText = torque.toFixed(1) + " Nm";
-        $('progress-torque').style.width = Math.min((torque / 500) * 100, 100) + "%";
-
-        // Temperatura (0-150 °C)
-        brutoTemp = (v / 1023.0) * 150;
-        const temp = Math.max(0, brutoTemp - offsetTemp);
-        $('val-temp').innerText = temp.toFixed(1) + " °C";
-        $('progress-temp').style.width = Math.min((temp / 150) * 100, 100) + "%";
-    }
-
-    /* ---------- NOTIFICAÇÃO ---------- */
-    function mostrarNotificacao(texto, isError = false) {
-        const anterior = document.querySelector('.notification');
-        if (anterior) anterior.remove();
-
-        const notif = document.createElement('div');
-        notif.className = 'notification' + (isError ? ' error' : '');
-        notif.innerText = texto;
-        document.body.appendChild(notif);
-
-        setTimeout(() => { if (notif.parentNode) notif.remove(); }, 2000);
-    }
-
-    /* ---------- MQTT ---------- */
-    client.onConnectionLost = function (resp) {
-        updateStatus(false);
-        console.error("❌ Conexão MQTT perdida:", resp.errorMessage);
-        conectando = false;
-        setTimeout(connectMQTT, 3000);
-    };
-
-    client.onMessageArrived = function (message) {
-        const topico = message.destinationName;
-        const raw = message.payloadString;
-        if (topico === TOPIC_COMANDOS) return;   // ignora eco dos próprios comandos
-        const data = parseTolerante(raw);
-        if (data) atualizarInterface(data);
-        else console.error("Mensagem ilegível:", raw);
-    };
-
-    // Lê JSON válido; se falhar (ex.: {"senso1", "PPM1":236}), extrai os pares "chave":valor
-    function parseTolerante(raw) {
-        try {
-            return JSON.parse(raw);
-        } catch (e) {
-            const data = {};
-            const re = /"([^"]+)"\s*:\s*(-?\d+(?:\.\d+)?|"[^"]*"|true|false|null)/g;
-            let m, achou = false;
-            while ((m = re.exec(raw)) !== null) {
-                try { data[m[1]] = JSON.parse(m[2]); achou = true; } catch (_) {}
-            }
-            return achou ? data : null;
-        }
-    }
-
-
-    function connectMQTT() {
-        if (conectando || client.isConnected()) return;
-        conectando = true;
-        console.log("🔌 Conectando ao MQTT...");
-        try {
-            client.connect({
-                onSuccess: function () {
-                    conectando = false;
-                    updateStatus(true);
-                    client.subscribe(`wellguard/${DEVICE_ID}/#`);
-                    console.log("✅ Conectado e inscrito em:", TOPIC_DADOS);
-                },
-                onFailure: function (e) {
-                    conectando = false;
-                    updateStatus(false);
-                    console.error("❌ Falha na conexão:", e.errorMessage);
-                    setTimeout(connectMQTT, 3000);
-                },
-                useSSL: USE_SSL,
-                keepAliveInterval: 30,
-                timeout: 10
-            });
-        } catch (e) {
-            conectando = false;
-            console.error("Erro no connect:", e);
-            setTimeout(connectMQTT, 3000);
-        }
-    }
-
-    function updateStatus(connected) {
-        const dot = $('status-dot');
-        const text = $('status-text');
-        if (connected) {
-            dot.classList.add('connected');
-            text.innerText = "Conectado (MQTT)";
-        } else {
-            dot.classList.remove('connected');
-            text.innerText = "Desconectado";
-        }
-    }
-
-    /* ---------- NAVEGAÇÃO ---------- */
-    function showView(viewId) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        const alvo = $(viewId);
-        if (alvo) alvo.classList.add('active');
-        else console.error("View não encontrada:", viewId);
-        window.scrollTo(0, 0);
-    }
-
-    /* ---------- COMANDOS ---------- */
-    function sendCommand(cmd, buttonElement) {
-        if (!client.isConnected()) {
-            mostrarNotificacao("❌ Sem conexão MQTT!", true);
-            return false;
-        }
-        try {
-            const message = new Paho.MQTT.Message(cmd);
-            message.destinationName = TOPIC_COMANDOS;
-            message.qos = 1;
-            client.send(message);
-
-            if (buttonElement) {
-                const originalText = buttonElement.innerText;
-                buttonElement.classList.add('sent');
-                buttonElement.innerText = '✓';
-                setTimeout(() => {
-                    buttonElement.classList.remove('sent');
-                    buttonElement.innerText = originalText;
-                }, 1000);
-            }
-            return true;
-        } catch (e) {
-            console.error("Erro ao enviar comando:", e);
-            mostrarNotificacao("❌ Erro ao enviar comando", true);
-            return false;
-        }
-    }
-
-    function zerarBomba1(btn) {
-        $('val-ppm1').innerText = '0';
-        $('val-cont1').innerText = '0';
-        if (sendCommand('ZERAR_B1', btn)) mostrarNotificacao('✅ Bomba 1 zerada!');
-    }
-
-    function zerarBomba2(btn) {
-        $('val-ppm2').innerText = '0';
-        $('val-cont2').innerText = '0';
-        if (sendCommand('ZERAR_B2', btn)) mostrarNotificacao('✅ Bomba 2 zerada!');
-    }
-
-    function zerarRPM_Mesa(btn) {
-        $('val-rpm-mesa').innerText = '0';
-        $('val-cont-rpm-mesa').innerText = '0';
-        if (sendCommand('ZERAR_RPM_MESA', btn)) mostrarNotificacao('✅ RPM Mesa zerada!');
-    }
-
-    function zerarRPM_Desgas(btn) {
-        $('val-rpm-desgas').innerText = '0';
-        $('val-cont-rpm-desgas').innerText = '0';
-        if (sendCommand('ZERAR_RPM_DESGAS', btn)) mostrarNotificacao('✅ RPM Desgasificador zerado!');
-    }
-
-    function zerarProfundidade(btn) {
-        $('val-prof').innerText = '0 m';
-        if (sendCommand('ZERAR_PROF', btn)) mostrarNotificacao('✅ Profundidade zerada!');
-    }
-
-    function taraPressao(btn) {
-        offsetPressao = brutoPressao;
-        renderSensores();
-        if (sendCommand('TARA_PRESS', btn)) mostrarNotificacao('✅ Tara de pressão aplicada!');
-    }
-
-    function taraTorque(btn) {
-        offsetTorque = brutoTorque;
-        renderSensores();
-        if (sendCommand('TARA_TORQUE', btn)) mostrarNotificacao('✅ Tara de torque aplicada!');
-    }
-
-    function taraTemp(btn) {
-        offsetTemp = brutoTemp;
-        renderSensores();
-        if (sendCommand('TARA_TEMP', btn)) mostrarNotificacao('✅ Tara de temperatura aplicada!');
-    }
-
-    /* ---------- DADOS ---------- */
-    function mapValue(x, in_min, in_max, out_min, out_max) {
-        return Math.floor((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
-    }
-
-    function atualizarVU(barId, textId, valor, maxValor) {
-        const percent = Math.max(0, Math.min((valor / maxValor) * 100, 100));
-        const bar = $(barId);
-        bar.style.height = percent + "%";
-        bar.style.background = percent < 60 ? '#00FF00' : (percent < 80 ? '#FFFF00' : '#FF0000');
-        $(textId).innerText = Math.floor(percent) + "%";
-    }
-
-    function pick(data, nomes) {
-        const norm = t => t.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const mapa = {};
-        for (const k in data) mapa[norm(k)] = data[k];
-        for (const n of nomes) {
-            const v = mapa[norm(n)];
-            if (v !== undefined && v !== null) return v;
-        }
-        return undefined;
-    }
-
-    function atualizarInterface(data) {
-        const cont1 = pick(data, ['contagem1', 'cont1', 'count1', 'pulsos1']);
-        const ppm1  = pick(data, ['PPM1', 'spm1', 'bomba1']);
-        const cont2 = pick(data, ['contagem2', 'cont2', 'count2', 'pulsos2']);
-        const ppm2  = pick(data, ['PPM2', 'spm2', 'bomba2']);
-        const rpmMesa  = pick(data, ['rpmMesa', 'rpm_mesa', 'RPM1']);
-        const contMesa = pick(data, ['contRpmMesa', 'cont_rpm_mesa', 'contagemRPM1']);
-        const rpmDes   = pick(data, ['rpmDesgas', 'rpm_desgas', 'RPM2']);
-        const contDes  = pick(data, ['contRpmDesgas', 'cont_rpm_desgas', 'contagemRPM2']);
-        const prof     = pick(data, ['Profundidade', 'prof', 'depth']);
-
-        if (cont1 !== undefined) $('val-cont1').innerText = cont1;
-        if (ppm1  !== undefined) $('val-ppm1').innerText = ppm1;
-        if (cont2 !== undefined) $('val-cont2').innerText = cont2;
-        if (ppm2  !== undefined) $('val-ppm2').innerText = ppm2;
-
-        const rm = rpmMesa !== undefined ? rpmMesa : ppm1;
-        if (rm !== undefined) {
-            $('val-rpm-mesa').innerText = rm;
-            $('val-cont-rpm-mesa').innerText = (contMesa !== undefined ? contMesa : cont1) || 0;
-        }
-        const rd = rpmDes !== undefined ? rpmDes : ppm2;
-        if (rd !== undefined) {
-            $('val-rpm-desgas').innerText = rd;
-            $('val-cont-rpm-desgas').innerText = (contDes !== undefined ? contDes : cont2) || 0;
-        }
-
-        if (prof !== undefined) $('val-prof').innerText = prof + " m";
-
-        const ana = pick(data, ['sensorAna', 'analog', 'sensor_ana']);
-        if (ana !== undefined) {
-            ultimoSensorAna = parseFloat(ana) || 0;
-            renderSensores();
-        }
-
-        const ugtRaw = pick(data, ['UGT1', 'UGT']);
-        if (ugtRaw !== undefined) {
-            const ugt = mapValue(parseInt(ugtRaw), 0, 1023, 0, 400);
-            $('val-ugt').innerText = ugt;
-            atualizarVU('vu-ugt', 'vu-ugt-text', ugt, 400);
-        }
-        const tcRaw = pick(data, ['TC1', 'TC']);
-        if (tcRaw !== undefined) {
-            const tc = mapValue(parseInt(tcRaw), 0, 1023, 0, 4000);
-            $('val-tc').innerText = tc;
-            atualizarVU('vu-tc', 'vu-tc-text', tc, 4000);
-        }
-    }
-
-    function updateClock() {
-        $('clock').innerText = new Date().toLocaleTimeString('pt-BR');
-    }
-
-    setInterval(updateClock, 1000);
-    updateClock();
-    connectMQTT();
+$('#spin').onclick=()=>{
+ if(busy)return;busy=true;clearWin();render();msg('Bola em jogo…');ac();
+ const win=Math.floor(Math.random()*37),i=ORDER.indexOf(win);
+ const D=11000,w0=wA,wf=w0+TAU*(4+Math.random()),bf=wf+i*SEG,b0=bA;
+ const Bt=(((b0-bf)%TAU)+TAU)%TAU+TAU*13,t0=performance.now();let li=null,lj=null;
+ (function f(now){
+  const p=Math.min(1,(now-t0)/D),ew=1-Math.pow(1-p,3),eb=1-Math.pow(1-p,2.6);
+  const r=p<.75?148:148-30*Math.pow((p-.75)/.25,1.6)+(p>.9?Math.sin((p-.9)*140)*(1-p)*60:0);
+  const wa=w0+(wf-w0)*ew,ba=b0-Bt*eb;draw(wa,ba,r);if(p<=.65){const j=Math.floor(ba/(SEG*6));if(j!==lj){lj=j;click(.1,2400+Math.random()*1200,.03)}}else{const ix=Math.floor((ba-wa)/SEG+.5);if(ix!==li){li=ix;click(.08+.5*(p-.65)/.35,2000+Math.random()*1500,.045)}}
+  if(p<1)requestAnimationFrame(f);else{rollStop();wA=wf%TAU;bA=bf%TAU;draw(wA,bA,118);finish(win)}
+ })(t0);
+};
+function finish(n){
+ let tot=0,pay=0;
+ const list=Object.values(bets);
+ list.forEach(b=>{tot+=b.amt;if(b.nums.includes(n))pay+=b.amt*(b.pay+1)});
+ bal+=pay;last=list.map(b=>({...b}));bets={};stack=[];busy=false;
+ document.querySelectorAll(`[data-n="${n}"]`).forEach(x=>x.classList.add('win'));
+ const net=pay-tot;click(.8,1200,.14);setTimeout(()=>pay?chime():thud(),220);
+ msg(`Saiu <b>${n}</b> ${CN[colr(n)]}.<br>`+(pay?`Você recebeu ${pay} fichas (${net>=0?'lucro':'prejuízo'} de ${Math.abs(net)}).`:`Nenhuma aposta ganhou. Você perdeu ${tot}.`));
+ const h=document.createElement('span');h.className=colr(n);h.textContent=n;$('#hist').prepend(h);
+ while($('#hist').children.length>14)$('#hist').lastChild.remove();
+ if(bal===0)msg(`Saiu <b>${n}</b> ${CN[colr(n)]}. Suas fichas acabaram. Clique em Reiniciar para jogar de novo.`);
+ render();
+}
+render();
 </script>
 </body>
 </html>
