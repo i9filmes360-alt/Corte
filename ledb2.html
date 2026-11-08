@@ -3,47 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Roleta Europeia - Clube Privado</title>
-<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+<title>Roleta Europeia</title>
 <style>
 :root{--bg:#0a1f17;--felt:#0d4a34;--gold:#d4af37;--red:#b3261e;--ink:#111;--ivory:#f4ecd8;--line:rgba(244,236,216,.5);color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden}
 body{height:100vh;height:100dvh;display:flex;flex-direction:column;gap:4px;background:var(--bg);color:var(--ivory);font-family:'Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;padding:max(4px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
-
-/* TELA DE LOGIN */
-#login{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a3d2e 0%,#0a1f17 100%);padding:20px}
-#login-box{background:var(--felt);border:3px solid var(--gold);border-radius:14px;padding:28px;max-width:380px;width:100%;box-shadow:0 0 60px rgba(212,175,55,.4)}
-#login-box h1{color:var(--gold);margin:0 0 6px;text-align:center;font-size:clamp(20px,6vh,28px)}
-#login-box .sub{text-align:center;font-size:13px;opacity:.75;margin-bottom:22px}
-#login-box label{display:block;margin:12px 0 4px;font-size:12px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px}
-#login-box input{width:100%;padding:11px;font:inherit;border:2px solid #5a3a1a;border-radius:6px;background:#10261d;color:var(--ivory);font-size:16px;text-align:center}
-#login-box input:focus{outline:none;border-color:var(--gold)}
-#login-btn{width:100%;background:var(--gold);color:#1a1405;font-weight:700;font-size:17px;padding:12px;margin-top:22px;border:none;border-radius:6px;cursor:pointer;letter-spacing:1px}
-#login-btn:hover:not(:disabled){background:#e6c34d}
-#login-btn:disabled{opacity:.5;cursor:not-allowed}
-#login-msg{text-align:center;margin-top:12px;font-size:13px;min-height:1.2em}
-.msg-err{color:#e74c3c}.msg-ok{color:#2ecc71}.msg-wait{color:#f39c12}
-#login-box .footer{margin-top:18px;text-align:center;font-size:11px;opacity:.6;border-top:1px solid #5a3a1a;padding-top:12px}
-
-/* BARRA MULTIPLAYER */
-.mp-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 10px;background:rgba(0,0,0,.4);border-radius:6px;font-size:clamp(11px,2.8vh,13px);flex:none;max-width:1300px;width:100%;margin:0 auto}
-.mp-left{display:flex;align-items:center;gap:8px}
-.mp-dot{width:9px;height:9px;border-radius:50%;background:#555}
-.mp-dot.on{background:#2ecc71;box-shadow:0 0 6px #2ecc71}
-.mp-user{color:var(--gold);font-weight:700}
-.mp-logout{background:transparent;border:1px solid #e74c3c;color:#e74c3c;padding:2px 8px;font-size:11px;border-radius:4px;cursor:pointer}
-.mp-logout:hover{background:#e74c3c;color:#fff}
-
 header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;width:100%;max-width:1300px;margin:0 auto}
-h1.game-title{font-size:clamp(14px,4.4vh,22px);margin:0;color:var(--gold);white-space:nowrap}
+h1{font-size:clamp(14px,4.4vh,22px);margin:0;color:var(--gold);white-space:nowrap}
 .stats{display:flex;align-items:center;gap:clamp(8px,2vw,18px);font-size:clamp(11px,3.4vh,15px)}
 .stats b{font-size:clamp(13px,4.2vh,20px);margin-left:4px}
 .game{flex:1;min-height:0;width:100%;max-width:1300px;margin:0 auto;display:grid;grid-template-columns:minmax(0,34%) minmax(0,1fr);gap:8px}
 .side{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(3px,1.2vh,8px);min-height:0;min-width:0}
 canvas{width:min(100%,calc(100dvh - 140px));max-width:100%;aspect-ratio:1;display:block;flex:none}
 #msg{text-align:center;font-size:clamp(10px,3.1vh,15px);line-height:1.3;min-height:2.6em}
-#spin-info{font-size:clamp(10px,2.8vh,13px);color:var(--gold);min-height:1.3em;text-align:center;font-weight:700}
 #hist{display:flex;gap:3px;justify-content:center;flex-wrap:nowrap;overflow:hidden;max-width:100%;min-height:clamp(16px,4vh,24px)}
 #hist span{flex:none;width:clamp(16px,4vh,24px);height:clamp(16px,4vh,24px);border-radius:3px;display:grid;place-items:center;font:700 clamp(9px,2.4vh,12px) sans-serif;color:#fff}
 .g{background:#1f7a3f}.r{background:var(--red)}.b{background:var(--ink)}
@@ -70,486 +43,235 @@ button:hover:not(:disabled){background:#27402f}
 button:disabled{opacity:.4;cursor:not-allowed}
 #spin{width:min(100%,220px);background:var(--gold);color:#1a1405;font-weight:700;font-size:clamp(13px,4vh,20px);padding:clamp(5px,1.6vh,10px) 12px}
 #spin:hover:not(:disabled){background:#e6c34d}
-.hd{display:flex;align-items:center;gap:10px;min-width:0}
+.hd{display:flex;align-items:center;gap:10px;min-width:0}#cfgb{flex:none;border-width:2px;font-weight:700}#cfgb.on{background:var(--gold);color:#1a1405}.stats{flex:none}h1{min-width:0;overflow:hidden;text-overflow:ellipsis}@media(max-width:760px){h1{display:none}}
 #help,#cfg,#rot{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;background:rgba(10,31,23,.96);line-height:1.5}
 #help.show,#cfg.show{display:flex}
-#cfg div,#help div{max-width:480px;font-size:clamp(12px,3.4vh,16px);line-height:1.6;text-align:left}
-#cfg input[type=number]{width:62px;padding:3px;font:inherit;text-align:center;border-radius:4px;border:1px solid var(--gold);background:#10261d;color:var(--ivory)}
-#cfg input[type=range]{width:100%;accent-color:var(--gold)}
-#cfg p{font-size:.85em;opacity:.8;margin:6px 0}
-#cfg button,#help button{margin-top:10px}
+#cfg div{max-width:480px;font-size:clamp(12px,3.4vh,16px);line-height:1.6;text-align:left}#cfg input[type=number]{width:62px;padding:3px;font:inherit;text-align:center;border-radius:4px;border:1px solid var(--gold);background:#10261d;color:var(--ivory)}#cfg input[type=range]{width:100%;accent-color:var(--gold)}#cfg p{font-size:.85em;opacity:.8;margin:6px 0}#cfg button{margin-top:6px}
 #party{position:fixed;inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;pointer-events:none;z-index:45}
 #banner{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:46;font-size:clamp(20px,8vh,48px);font-weight:700;color:var(--gold);text-shadow:0 2px 10px #000,0 0 24px #d4af37aa;text-align:center;pointer-events:none;animation:pop 3.2s ease forwards}
 @keyframes pop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}12%{transform:translate(-50%,-50%) scale(1.15);opacity:1}22%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+#help div{max-width:640px;font-size:clamp(12px,3.4vh,16px);text-align:left}
+#help button{margin-top:10px}
 #rot{z-index:60;font-size:1.2rem;flex-direction:column;gap:10px}
 @media(orientation:portrait) and (max-width:700px){#rot{display:flex}}
-@media(max-width:760px){h1.game-title{display:none}}
 </style>
 </head>
 <body>
-
-<!-- TELA DE LOGIN -->
-<div id="login">
-  <div id="login-box">
-    <h1>🎰 Roleta Europeia</h1>
-    <div class="sub">Clube Privado — Acesso restrito</div>
-    <label>Usuário</label>
-    <input type="text" id="inp-user" placeholder="iptu676466" autocomplete="off">
-    <label>Senha</label>
-    <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="off">
-    <button id="login-btn">ENTRAR</button>
-    <div id="login-msg"></div>
-    <div class="footer">Credencial: iptu676466 / iptu676466</div>
-  </div>
-</div>
-
-<!-- BARRA MULTIPLAYER -->
-<div class="mp-bar" id="mp-bar" style="display:none">
-  <div class="mp-left">
-    <div class="mp-dot" id="mp-dot"></div>
-    <span>Jogando como: <span class="mp-user" id="mp-user">—</span></span>
-  </div>
-  <div class="mp-left">
-    <span class="mp-players" id="mp-players"> 1 online</span>
-    <button class="mp-logout" id="mp-logout">Sair</button>
-  </div>
-</div>
-
 <header>
-  <div class="hd"><h1 class="game-title">Roleta Europeia</h1><button id="cfgb" title="Chance de ganhar">🎯 Justa</button></div>
-  <div class="stats"><span>Fichas<b id="bal">1000</b></span><span>Aposta<b id="tot">0</b></span><button id="helpb">? Ajuda</button><button id="mute">🔊</button></div>
+<div class="hd"><h1>Roleta Europeia</h1><button id="cfgb" title="Chance de ganhar">🎯 Justa</button></div>
+<div class="stats"><span>Fichas<b id="bal">1000</b></span><span>Aposta<b id="tot">0</b></span><button id="helpb">? Ajuda</button><button id="mute">🔊</button></div>
 </header>
-
 <div class="game">
-  <div class="side">
-    <canvas id="wheel" width="680" height="680"></canvas>
-    <div id="spin-info"></div>
-    <div id="msg">Escolha uma ficha, toque na mesa e gire.</div>
-    <button id="spin">Girar</button>
-    <div id="hist"></div>
-  </div>
-  <div class="felt">
-    <div class="board" id="board"><div id="nums"></div></div>
-    <div class="row">
-      <div class="tray" id="tray"></div>
-      <div class="acts">
-        <button id="undo">Desfazer</button>
-        <button id="clear">Limpar</button>
-        <button id="dbl">Dobrar</button>
-        <button id="rep">Repetir</button>
-        <button id="reset">Reiniciar</button>
-      </div>
-    </div>
-  </div>
+<div class="side">
+<canvas id="wheel" width="680" height="680" aria-label="Roda da roleta"></canvas>
+<div id="msg">Escolha uma ficha, toque na mesa e gire.</div>
+<button id="spin">Girar</button>
+<div id="hist" aria-label="Últimos números"></div>
 </div>
-
+<div class="felt">
+<div class="board" id="board"><div id="nums"></div></div>
+<div class="row"><div class="tray" id="tray"></div>
+<div class="acts"><button id="undo">Desfazer</button><button id="clear">Limpar</button><button id="dbl">Dobrar</button><button id="rep">Repetir</button><button id="reset">Reiniciar</button></div></div>
+</div>
+</div>
 <div id="help"><div><b>Como apostar</b><br>Escolha uma ficha e toque na mesa. Toque no centro de um número para o pleno (paga 35:1). Nas bordas entre números: cavalo, 2 números (17:1); rua, na borda de baixo (11:1); quadra, no cruzamento de 4 números (8:1); linha dupla, na borda de baixo entre duas ruas (5:1). Junto ao zero: trio (11:1) e primeira quadra 0‑1‑2‑3 (8:1). Colunas e dúzias pagam 2:1. Vermelho/preto, par/ímpar e 1–18/19–36 pagam 1:1. O zero faz perder as apostas simples.<br><button id="helpx">Fechar</button></div></div>
-<div id="cfg"><div><b>Chance de ganhar (modo teste)</b><br><label><input type="radio" name="md" value="fair" checked> Justa: sorteio puro</label><br><label><input type="radio" name="md" value="custom"> Personalizada</label><br>Chance de lucrar: <input id="pct" type="number" min="0" max="100" step="1" value="50"> %<input id="pctr" type="range" min="0" max="100" value="50"><p>Na personalizada, a rodada termina em lucro com essa chance.</p><button id="cfgx">Salvar</button></div></div>
+<div id="cfg"><div><b>Chance de ganhar (modo teste)</b><br><label><input type="radio" name="md" value="fair" checked> Justa: sorteio puro, como a roleta real</label><br><label><input type="radio" name="md" value="custom"> Personalizada</label><br>Chance de lucrar em cada rodada: <input id="pct" type="number" min="0" max="100" step="1" value="50"> %<input id="pctr" type="range" min="0" max="100" value="50"><p>Na personalizada, a rodada termina em lucro com essa chance, considerando as apostas que estão na mesa. O botão do topo sempre mostra a chance em uso.</p><button id="cfgx">Salvar</button></div></div>
 <canvas id="party"></canvas>
-<div id="rot"><div style="font-size:3rem"></div>Gire o celular para o modo horizontal</div>
-
+<div id="rot"><div style="font-size:3rem">🔄</div>Gire o celular para o modo horizontal para jogar</div>
 <script>
-// ============================================================
-// CONFIGURAÇÃO MQTT
-// ============================================================
-const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
-const MQTT_USER   = '';
-const MQTT_PASS   = '';
-const MQTT_TOPIC  = 'roleta-iptu676466/sala-privada';
+const $=s=>document.querySelector(s);
+const ORDER=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const RED=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const colr=n=>n===0?'g':RED.has(n)?'r':'b';
+const CN={g:'verde',r:'vermelho',b:'preto'};
+const F={z:n=>n===0,c3:n=>n>0&&n%3===0,c2:n=>n%3===2,c1:n=>n%3===1,d1:n=>n>=1&&n<=12,d2:n=>n>=13&&n<=24,d3:n=>n>=25,lo:n=>n>=1&&n<=18,ev:n=>n>0&&n%2===0,rd:n=>RED.has(n),bk:n=>n>0&&!RED.has(n),od:n=>n%2===1,hi:n=>n>=19};
+const PAY={z:35,c1:2,c2:2,c3:2,d1:2,d2:2,d3:2,lo:1,ev:1,rd:1,bk:1,od:1,hi:1};
+const LAB={z:'Zero',c1:'Coluna 1',c2:'Coluna 2',c3:'Coluna 3',d1:'1ª dúzia',d2:'2ª dúzia',d3:'3ª dúzia',lo:'1–18',ev:'Par',rd:'Vermelho',bk:'Preto',od:'Ímpar',hi:'19–36'};
+const TXT={z:'0',c1:'2:1',c2:'2:1',c3:'2:1',d1:'1ª dúzia',d2:'2ª dúzia',d3:'3ª dúzia',lo:'1–18',ev:'Par',rd:'Vermelho',bk:'Preto',od:'Ímpar',hi:'19–36'};
+const POS={z:['1','1/4'],c3:['14','1'],c2:['14','2'],c1:['14','3'],d1:['2/6','4'],d2:['6/10','4'],d3:['10/14','4'],lo:['2/4','5'],ev:['4/6','5'],rd:['6/8','5'],bk:['8/10','5'],od:['10/12','5'],hi:['12/14','5']};
+const PL={1:35,2:17,3:11,4:8,6:5};
+const NAME={1:'Pleno',2:'Cavalo',3:'Rua',4:'Quadra',6:'Linha dupla'};
+const board=$('#board'),nums=$('#nums');
+let bal=1000,chip=5,bets={},stack=[],last=null,busy=false,wA=0,bA=0;
 
-// ============================================================
-// CREDENCIAL ÚNICA DE ACESSO
-// ============================================================
-const VALID_USER = 'iptu676466';
-const VALID_PASS = 'iptu676466';
+// monta a mesa (posições definidas aqui para funcionar em qualquer navegador)
+for(let r=0;r<3;r++)for(let c=0;c<12;c++){const n=3*c+3-r,d=document.createElement('div');d.className='n '+colr(n);d.dataset.n=n;d.style.gridColumn=String(c+1);d.style.gridRow=String(r+1);d.textContent=n;nums.append(d)}
+Object.keys(TXT).forEach(id=>{const d=document.createElement('div');d.dataset.bet=id;d.textContent=TXT[id];d.className=id==='z'?'n g':'o'+(id==='rd'?' rd':id==='bk'?' bk':'');if(id==='z')d.dataset.n=0;d.style.gridColumn=POS[id][0];d.style.gridRow=POS[id][1];board.append(d)});
 
-// ============================================================
-// VARIÁVEIS GLOBAIS
-// ============================================================
-const $ = s => document.querySelector(s);
-const ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
-const RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-const colr = n => n===0?'g':RED.has(n)?'r':'b';
-const CN = {g:'verde', r:'vermelho', b:'preto'};
-const F = {z:n=>n===0, c3:n=>n>0&&n%3===0, c2:n=>n%3===2, c1:n=>n%3===1, d1:n=>n>=1&&n<=12, d2:n=>n>=13&&n<=24, d3:n=>n>=25, lo:n=>n>=1&&n<=18, ev:n=>n>0&&n%2===0, rd:n=>RED.has(n), bk:n=>n>0&&!RED.has(n), od:n=>n%2===1, hi:n=>n>=19};
-const PAY = {z:35, c1:2, c2:2, c3:2, d1:2, d2:2, d3:2, lo:1, ev:1, rd:1, bk:1, od:1, hi:1};
-const LAB = {z:'Zero', c1:'Coluna 1', c2:'Coluna 2', c3:'Coluna 3', d1:'1ª dúzia', d2:'2ª dúzia', d3:'3ª dúzia', lo:'1–18', ev:'Par', rd:'Vermelho', bk:'Preto', od:'Ímpar', hi:'19–36'};
-const TXT = {z:'0', c1:'2:1', c2:'2:1', c3:'2:1', d1:'1ª dúzia', d2:'2ª dúzia', d3:'3ª dúzia', lo:'1–18', ev:'Par', rd:'Vermelho', bk:'Preto', od:'Ímpar', hi:'19–36'};
-const POS = {z:['1','1/4'], c3:['14','1'], c2:['14','2'], c1:['14','3'], d1:['2/6','4'], d2:['6/10','4'], d3:['10/14','4'], lo:['2/4','5'], ev:['4/6','5'], rd:['6/8','5'], bk:['8/10','5'], od:['10/12','5'], hi:['12/14','5']};
-const PL = {1:35, 2:17, 3:11, 4:8, 6:5};
-const NAME = {1:'Pleno', 2:'Cavalo', 3:'Rua', 4:'Quadra', 6:'Linha dupla'};
-const board = $('#board'), nums = $('#nums');
-let bal=1000, chip=5, bets={}, stack=[], last=null, busy=false, wA=0, bA=0;
-let currentUser = null, mqttClient = null, onlineUsers = new Map(), heartbeatTimer = null;
-
-// ============================================================
-// SISTEMA DE LOGIN
-// ============================================================
-$('#login-btn').onclick = doLogin;
-$('#inp-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-$('#inp-user').addEventListener('keydown', e => { if(e.key==='Enter') $('#inp-pass').focus(); });
-
-function doLogin(){
-  const user = $('#inp-user').value.trim().toLowerCase();
-  const pass = $('#inp-pass').value.trim();
-  const msg = $('#login-msg');
-  
-  if(!user || !pass){ msg.className='msg-err'; msg.textContent='⚠ Preencha usuário e senha'; return; }
-  if(user !== VALID_USER || pass !== VALID_PASS){ 
-    msg.className='msg-err'; 
-    msg.textContent=' Credencial inválida'; 
-    return; 
-  }
-  
-  msg.className='msg-wait'; msg.textContent='⏳ Conectando...';
-  $('#login-btn').disabled = true;
-  currentUser = user;
-  connectMQTT();
-}
-
-function connectMQTT(){
-  try{
-    mqttClient = mqtt.connect(MQTT_BROKER, {
-      clientId: 'roleta_' + currentUser + '_' + Date.now(),
-      username: MQTT_USER || undefined,
-      password: MQTT_PASS || undefined,
-      clean: true,
-      reconnectPeriod: 3000,
-      connectTimeout: 10000
-    });
-    
-    mqttClient.on('connect', () => {
-      $('#login-msg').className='msg-ok';
-      $('#login-msg').textContent='✅ Conectado!';
-      setTimeout(() => {
-        $('#login').style.display = 'none';
-        $('#mp-bar').style.display = 'flex';
-        $('#mp-user').textContent = currentUser;
-        initGame();
-        announcePresence();
-        startHeartbeat();
-      }, 400);
-    });
-    
-    mqttClient.on('message', (topic, message) => {
-      try{ handleMQTTMessage(JSON.parse(message.toString())); }catch(e){}
-    });
-    
-    mqttClient.on('error', (err) => {
-      $('#login-msg').className='msg-err';
-      $('#login-msg').textContent='❌ Erro: ' + err.message;
-      $('#login-btn').disabled = false;
-    });
-    
-    mqttClient.on('offline', () => { $('#mp-dot').className='mp-dot off'; });
-    mqttClient.on('reconnect', () => { $('#mp-dot').className='mp-dot'; });
-    
-    mqttClient.subscribe(MQTT_TOPIC);
-  }catch(e){
-    $('#login-msg').className='msg-err';
-    $('#login-msg').textContent='❌ Falha na conexão';
-    $('#login-btn').disabled = false;
-  }
-}
-
-function announcePresence(){
-  if(!mqttClient) return;
-  mqttClient.publish(MQTT_TOPIC, JSON.stringify({ type:'presence', user:currentUser, ts:Date.now() }));
-}
-
-function startHeartbeat(){
-  heartbeatTimer = setInterval(() => {
-    announcePresence();
-    const now = Date.now();
-    for(const [u, ts] of onlineUsers){
-      if(now - ts > 15000) onlineUsers.delete(u);
-    }
-    updateOnlineCount();
-  }, 5000);
-}
-
-function updateOnlineCount(){
-  onlineUsers.set(currentUser, Date.now());
-  $('#mp-players').textContent = ' ' + onlineUsers.size + ' online';
-  $('#mp-dot').className = 'mp-dot on';
-}
-
-function handleMQTTMessage(data){
-  if(data.type === 'presence'){
-    onlineUsers.set(data.user, data.ts);
-    updateOnlineCount();
-  } else if(data.type === 'spin'){
-    if(data.user !== currentUser && !busy){
-      $('#spin-info').textContent = '🎰 ' + data.user + ' girou a roleta...';
-      runRemoteSpin(data.number);
-    }
-  } else if(data.type === 'result'){
-    if(data.user !== currentUser){
-      $('#spin-info').textContent = '🎯 ' + data.user + ' — Saiu ' + data.number + ' ' + CN[colr(data.number)];
-    }
-  } else if(data.type === 'leave'){
-    onlineUsers.delete(data.user);
-    updateOnlineCount();
-  }
-}
-
-$('#mp-logout').onclick = () => {
-  if(mqttClient){
-    mqttClient.publish(MQTT_TOPIC, JSON.stringify({ type:'leave', user:currentUser }));
-    mqttClient.end();
-  }
-  if(heartbeatTimer) clearInterval(heartbeatTimer);
-  location.reload();
-};
-
-// ============================================================
-// LÓGICA DO JOGO
-// ============================================================
-function initGame(){
-  for(let r=0; r<3; r++) for(let c=0; c<12; c++){
-    const n = 3*c+3-r, d = document.createElement('div');
-    d.className = 'n ' + colr(n); d.dataset.n = n;
-    d.style.gridColumn = String(c+1); d.style.gridRow = String(r+1);
-    d.textContent = n; nums.append(d);
-  }
-  Object.keys(TXT).forEach(id => {
-    const d = document.createElement('div');
-    d.dataset.bet = id; d.textContent = TXT[id];
-    d.className = id==='z' ? 'n g' : 'o' + (id==='rd' ? ' rd' : id==='bk' ? ' bk' : '');
-    if(id==='z') d.dataset.n = 0;
-    d.style.gridColumn = POS[id][0]; d.style.gridRow = POS[id][1];
-    board.append(d);
-  });
-  [1,5,25,100,500].forEach(v => {
-    const c = document.createElement('div');
-    c.className = 'chip c' + v + (v===chip ? ' sel' : '');
-    c.textContent = v;
-    c.onclick = () => { chip = v; document.querySelectorAll('#tray .chip').forEach(x => x.classList.toggle('sel', x===c)); };
-    $('#tray').append(c);
-  });
-  render();
-}
-
+// descobre a aposta pela posição do toque (u: 0–12 colunas, v: 0–3 linhas)
 function resolve(u,v){
-  const t=.24, c=Math.min(11,Math.max(0,Math.floor(u))), r=Math.min(2,Math.max(0,Math.floor(v))), a=u-c, b=v-r;
-  let bx=-1, by=-1;
-  if(a<t) bx=c; else if(a>1-t) bx=c+1;
-  if(b<t) by=r; else if(b>1-t) by=r+1;
-  if(bx===12) bx=-1; if(by===0) by=-1;
-  const N = (cc,rr) => 3*cc+3-rr; let s;
-  if(bx>=0 && by>=0){
-    if(bx===0) s = by===3 ? [0,1,2,3] : [0,N(0,by-1),N(0,by)];
-    else if(by===3) s = [N(bx-1,0),N(bx-1,1),N(bx-1,2),N(bx,0),N(bx,1),N(bx,2)];
-    else s = [N(bx-1,by-1),N(bx,by-1),N(bx-1,by),N(bx,by)];
-  } else if(bx>=0) s = bx===0 ? [0,N(0,r)] : [N(bx-1,r),N(bx,r)];
-  else if(by>=0) s = by===3 ? [N(c,0),N(c,1),N(c,2)] : [N(c,by-1),N(c,by)];
-  else s = [N(c,r)];
-  s.sort((x,y) => x-y);
-  const nm = s.length===3 && s[0]===0 ? 'Trio' : s.length===4 && s[0]===0 ? 'Primeira quadra' : NAME[s.length];
-  return { key:s.join('-'), nums:s, pay:PL[s.length], label:nm+' '+s.join('‑'), u:bx>=0?bx:c+.5, v:by>=0?by:r+.5 };
+ const t=.24,c=Math.min(11,Math.max(0,Math.floor(u))),r=Math.min(2,Math.max(0,Math.floor(v))),a=u-c,b=v-r;
+ let bx=-1,by=-1;
+ if(a<t)bx=c;else if(a>1-t)bx=c+1;
+ if(b<t)by=r;else if(b>1-t)by=r+1;
+ if(bx===12)bx=-1;if(by===0)by=-1;
+ const N=(cc,rr)=>3*cc+3-rr;let s;
+ if(bx>=0&&by>=0){
+  if(bx===0)s=by===3?[0,1,2,3]:[0,N(0,by-1),N(0,by)];
+  else if(by===3)s=[N(bx-1,0),N(bx-1,1),N(bx-1,2),N(bx,0),N(bx,1),N(bx,2)];
+  else s=[N(bx-1,by-1),N(bx,by-1),N(bx-1,by),N(bx,by)];
+ }else if(bx>=0)s=bx===0?[0,N(0,r)]:[N(bx-1,r),N(bx,r)];
+ else if(by>=0)s=by===3?[N(c,0),N(c,1),N(c,2)]:[N(c,by-1),N(c,by)];
+ else s=[N(c,r)];
+ s.sort((x,y)=>x-y);
+ const nm=s.length===3&&s[0]===0?'Trio':s.length===4&&s[0]===0?'Primeira quadra':NAME[s.length];
+ return{key:s.join('-'),nums:s,pay:PL[s.length],label:nm+' '+s.join('‑'),u:bx>=0?bx:c+.5,v:by>=0?by:r+.5};
 }
-
-function hot(e){
-  const R = nums.getBoundingClientRect();
-  const w = R.width || nums.offsetWidth, h = R.height || nums.offsetHeight;
-  if(w===0 || h===0) return null;
-  return resolve((e.clientX-R.left)/w*12, (e.clientY-R.top)/h*3);
-}
-
-function outDef(id){
-  const ns=[]; for(let n=0;n<=36;n++) if(F[id](n)) ns.push(n);
-  return { key:'o'+id, nums:ns, pay:PAY[id], label:LAB[id], el:`[data-bet="${id}"]` };
-}
+function hot(e){const R=nums.getBoundingClientRect();return resolve((e.clientX-R.left)/R.width*12,(e.clientY-R.top)/R.height*3)}
+function outDef(id){const ns=[];for(let n=0;n<=36;n++)if(F[id](n))ns.push(n);return{key:'o'+id,nums:ns,pay:PAY[id],label:LAB[id],el:`[data-bet="${id}"]`}}
 
 function place(d){
-  if(!d || !d.key) return; if(busy) return;
-  if(chip > bal){ msg('Fichas insuficientes.'); return; }
-  clearWin();
-  const b = bets[d.key] || (bets[d.key] = {...d, amt:0});
-  b.amt += chip; bal -= chip; stack.push({k:d.key, v:chip}); chipSound(); render();
+ if(busy)return;
+ if(chip>bal){msg('Fichas insuficientes para essa ficha.');return}
+ clearWin();
+ const b=bets[d.key]||(bets[d.key]={...d,amt:0});
+ b.amt+=chip;bal-=chip;stack.push({k:d.key,v:chip});chipSound();
+ render();
 }
-
-board.addEventListener('click', e => {
-  if(e.target.closest('#nums')){ const d = hot(e); if(d) return place(d); }
-  const o = e.target.closest('[data-bet]'); if(o) place(outDef(o.dataset.bet));
+board.addEventListener('click',e=>{
+ if(e.target.closest('#nums'))return place(hot(e));
+ const o=e.target.closest('[data-bet]');if(o)place(outDef(o.dataset.bet));
 });
-nums.addEventListener('mousemove', e => { clearHl(); const d = hot(e); if(d) d.nums.forEach(n => $(`.n[data-n="${n}"]`)?.classList.add('hl')); });
-nums.addEventListener('mouseleave', clearHl);
-function clearHl(){ document.querySelectorAll('.hl').forEach(x => x.classList.remove('hl')); }
-function clearWin(){ document.querySelectorAll('.win').forEach(x => x.classList.remove('win')); }
+nums.addEventListener('mousemove',e=>{clearHl();hot(e).nums.forEach(n=>$(`.n[data-n="${n}"]`)?.classList.add('hl'))});
+nums.addEventListener('mouseleave',clearHl);
+function clearHl(){document.querySelectorAll('.hl').forEach(x=>x.classList.remove('hl'))}
+function clearWin(){document.querySelectorAll('.win').forEach(x=>x.classList.remove('win'))}
 
-const TIERS = [500,100,25,5,1];
+const TIERS=[500,100,25,5,1];
 function render(){
-  board.querySelectorAll('.chip').forEach(x => x.remove());
-  let tot=0; const w = nums.offsetWidth||1, h = nums.offsetHeight||1;
-  for(const b of Object.values(bets)){
-    tot += b.amt; let x,y;
-    if(b.el){ const e = $(b.el); x = e.offsetLeft + e.offsetWidth/2; y = e.offsetTop + e.offsetHeight/2; }
-    else { x = nums.offsetLeft + (b.u/12)*w; y = nums.offsetTop + (b.v/3)*h; }
-    const c = document.createElement('div');
-    c.className = 'chip c' + TIERS.find(t => b.amt >= t);
-    c.style.left = x+'px'; c.style.top = y+'px';
-    c.textContent = b.amt >= 1000 ? (b.amt/1000).toFixed(b.amt%1000?1:0)+'k' : b.amt;
-    c.title = b.label + ' · paga ' + b.pay + ':1'; board.append(c);
-  }
-  $('#bal').textContent = bal; $('#tot').textContent = tot;
-  $('#spin').disabled = busy || !tot;
-  ['undo','clear','dbl'].forEach(i => $('#'+i).disabled = busy || !tot);
-  $('#rep').disabled = busy || tot>0 || !last;
+ board.querySelectorAll('.chip').forEach(x=>x.remove());
+ let tot=0;
+ for(const b of Object.values(bets)){
+  tot+=b.amt;
+  let x,y;
+  if(b.el){const e=$(b.el);x=e.offsetLeft+e.offsetWidth/2;y=e.offsetTop+e.offsetHeight/2}
+  else{x=nums.offsetLeft+b.u/12*nums.offsetWidth;y=nums.offsetTop+b.v/3*nums.offsetHeight}
+  const c=document.createElement('div');
+  c.className='chip c'+TIERS.find(t=>b.amt>=t);
+  c.style.left=x+'px';c.style.top=y+'px';
+  c.textContent=b.amt>=1000?(b.amt/1000).toFixed(b.amt%1000?1:0)+'k':b.amt;
+  c.title=b.label+' · paga '+b.pay+':1';
+  board.append(c);
+ }
+ $('#bal').textContent=bal;$('#tot').textContent=tot;
+ $('#spin').disabled=busy||!tot;
+ ['undo','clear','dbl'].forEach(i=>$('#'+i).disabled=busy||!tot);
+ $('#rep').disabled=busy||tot>0||!last;
 }
-function msg(t){ $('#msg').innerHTML = t; }
+function msg(t){$('#msg').innerHTML=t}
 
-$('#undo').onclick = () => { const s = stack.pop(); if(!s) return; const b = bets[s.k]; b.amt -= s.v; bal += s.v; if(!b.amt) delete bets[s.k]; render(); };
-$('#clear').onclick = () => { for(const b of Object.values(bets)) bal += b.amt; bets = {}; stack = []; render(); };
-$('#dbl').onclick = () => { const t = Object.values(bets).reduce((s,b) => s+b.amt, 0); if(t > bal){ msg('Fichas insuficientes.'); return; } for(const b of Object.values(bets)){ stack.push({k:b.key, v:b.amt}); b.amt *= 2; } bal -= t; render(); };
-$('#rep').onclick = () => { const t = last.reduce((s,b) => s+b.amt, 0); if(t > bal){ msg('Fichas insuficientes.'); return; } clearWin(); last.forEach(b => { bets[b.key] = {...b}; stack.push({k:b.key, v:b.amt}); }); bal -= t; render(); };
-$('#reset').onclick = () => { if(busy) return; bal = 1000; bets = {}; stack = []; last = null; $('#hist').innerHTML = ''; clearWin(); msg('Reiniciado com 1000 fichas.'); render(); };
-$('#helpb').onclick = () => $('#help').classList.add('show');
-$('#helpx').onclick = () => $('#help').classList.remove('show');
-addEventListener('resize', render);
+// fichas
+[1,5,25,100,500].forEach(v=>{const c=document.createElement('div');c.className='chip c'+v+(v===chip?' sel':'');c.textContent=v;c.onclick=()=>{chip=v;document.querySelectorAll('#tray .chip').forEach(x=>x.classList.toggle('sel',x===c))};$('#tray').append(c)});
 
-let AC=null, NB=null, muted=false;
-function ac(){ if(!AC){ const C = window.AudioContext||window.webkitAudioContext; if(!C) return null; AC = new C(); } if(AC.state==='suspended') AC.resume(); return AC; }
-function nbuf(a){ if(!NB){ NB = a.createBuffer(1, a.sampleRate, a.sampleRate); const d = NB.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1; } return NB; }
-function click(v,f,len){ if(muted) return; const a = ac(); if(!a) return; const s = a.createBufferSource(); s.buffer = nbuf(a); const fl = a.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = f; fl.Q.value = 3; const g = a.createGain(), t = a.currentTime; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t+len); s.connect(fl); fl.connect(g); g.connect(a.destination); s.start(t, Math.random()*.5, len+.02); }
-function tone(f,d,len,v,type){ if(muted) return; const a = ac(); if(!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime+d; o.type = type||'sine'; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t+len); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+len+.05); }
-const chime = () => [523,659,784,1047,1319,1568].forEach((f,i) => tone(f, i*.09, .5, .16));
-const thud = () => tone(110, 0, .35, .3, 'triangle');
-const chipSound = () => { click(.5, 3500, .06); setTimeout(() => click(.35, 2500, .05), 55); };
-$('#mute').onclick = () => { muted = !muted; $('#mute').textContent = muted ? '🔇' : '🔊'; };
+$('#undo').onclick=()=>{const s=stack.pop();if(!s)return;const b=bets[s.k];b.amt-=s.v;bal+=s.v;if(!b.amt)delete bets[s.k];render()};
+$('#clear').onclick=()=>{for(const b of Object.values(bets))bal+=b.amt;bets={};stack=[];render()};
+$('#dbl').onclick=()=>{const t=Object.values(bets).reduce((s,b)=>s+b.amt,0);if(t>bal){msg('Fichas insuficientes para dobrar.');return}for(const b of Object.values(bets)){stack.push({k:b.key,v:b.amt});b.amt*=2}bal-=t;render()};
+$('#rep').onclick=()=>{const t=last.reduce((s,b)=>s+b.amt,0);if(t>bal){msg('Fichas insuficientes para repetir.');return}clearWin();last.forEach(b=>{bets[b.key]={...b};stack.push({k:b.key,v:b.amt})});bal-=t;render()};
+$('#reset').onclick=()=>{if(busy)return;bal=1000;bets={};stack=[];last=null;$('#hist').innerHTML='';clearWin();msg('Jogo reiniciado com 1000 fichas.');render()};
+$('#helpb').onclick=()=>$('#help').classList.add('show');
+$('#helpx').onclick=()=>$('#help').classList.remove('show');
+addEventListener('resize',render);
 
-let mode='fair', pct=50;
-function pick(){
-  const list = Object.values(bets); let tot = 0; list.forEach(b => tot += b.amt);
-  if(mode === 'fair') return Math.floor(Math.random()*37);
-  if(tot === 0) return Math.floor(Math.random()*37);
-  const W=[], L=[];
-  for(let n=0; n<=36; n++){ let pr=0; list.forEach(b => { if(b.nums.includes(n)) pr += b.amt*(b.pay+1); }); if(pr > tot) W.push(n); else L.push(n); }
-  const isWinDesired = Math.random()*100 < pct; let pool = isWinDesired ? W : L;
-  if(pool.length === 0) pool = isWinDesired ? L : W;
-  if(pool.length === 0) return Math.floor(Math.random()*37);
-  return pool[Math.floor(Math.random()*pool.length)];
-}
-$('#pct').oninput = () => { $('#pctr').value = $('#pct').value; document.querySelector('input[name=md][value=custom]').checked = true; };
-$('#pctr').oninput = () => { $('#pct').value = $('#pctr').value; document.querySelector('input[name=md][value=custom]').checked = true; };
-$('#cfgb').onclick = () => $('#cfg').classList.add('show');
-$('#cfgx').onclick = () => { mode = document.querySelector('input[name=md]:checked').value; pct = Math.min(100, Math.max(0, Math.round(Number($('#pct').value)||0))); $('#pct').value = pct; $('#pctr').value = pct; $('#cfgb').textContent = mode==='fair' ? '🎯 Justa' : '🎯 '+pct+'%'; $('#cfg').classList.remove('show'); $('#cfgb').classList.toggle('on', mode!=='fair'); };
+// som (sintetizado no navegador)
+let AC=null,NB=null,muted=false;
+function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C()}if(AC.state==='suspended')AC.resume();return AC}
+function nbuf(a){if(!NB){NB=a.createBuffer(1,a.sampleRate,a.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return NB}
+function click(v,f,len){if(muted)return;const a=ac();if(!a)return;const s=a.createBufferSource();s.buffer=nbuf(a);const fl=a.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=3;const g=a.createGain(),t=a.currentTime;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+len);s.connect(fl);fl.connect(g);g.connect(a.destination);s.start(t,Math.random()*.5,len+.02)}
+function tone(f,d,len,v,type){if(muted)return;const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+d;o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+len);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+len+.05)}
+const chime=()=>[523,659,784,1047,1319,1568].forEach((f,i)=>tone(f,i*.09,.5,.16));
+const thud=()=>tone(110,0,.35,.3,'triangle');
+const chipSound=()=>{click(.5,3500,.06);setTimeout(()=>click(.35,2500,.05),55)};
+$('#mute').onclick=()=>{muted=!muted;$('#mute').textContent=muted?'🔇':'🔊'};
 
-const pc = $('#party'), px = pc.getContext('2d'); let ps=[], pRun=false;
-function party(pay, tot){
-  const dpr = Math.min(2, devicePixelRatio||1), W = innerWidth, H = innerHeight; pc.width = W*dpr; pc.height = H*dpr; px.setTransform(dpr,0,0,dpr,0,0);
-  const k = pay >= tot*10 ? 1.6 : 1, S = Math.max(18, Math.min(W,H)/11), R = (a,b) => a + Math.random()*(b-a), COL = ['#e74c3c','#f1c40f','#3498db','#2ecc71','#e84393','#9b59b6','#ff9f43'];
-  for(let i=0; i<16*k; i++) ps.push({t:'b', x:R(0,W), y:H+R(20,H*.5), vy:-R(1.8,3.6), vx:0, s:R(S*.8,S*1.4), c:COL[i%COL.length], ph:R(0,6.3)});
-  for(let i=0; i<20*k; i++) ps.push({t:'e', e:['❤️','💖','','💕'][i%4], x:R(0,W), y:-R(10,H*.8), vy:R(1.2,2.8), vx:R(-.6,.6), s:R(S*.5,S*.9), r:R(0,6), vr:R(-.05,.05), ph:R(0,6.3)});
-  for(let i=0; i<20*k; i++) ps.push({t:'e', e:['⭐','🌟','✨'][i%3], x:R(0,W), y:-R(10,H*.8), vy:R(1.2,2.8), vx:R(-.6,.6), s:R(S*.5,S*.9), r:R(0,6), vr:R(-.08,.08), ph:R(0,6.3)});
-  for(let i=0; i<50*k; i++) ps.push({t:'c', x:R(0,W), y:-R(10,H), vy:R(2,5), vx:R(-1,1), w:R(6,11), h:R(4,8), c:COL[i%COL.length], r:R(0,6), vr:R(-.2,.2), ph:R(0,6.3)});
-  const b = document.createElement('div'); b.id = 'banner'; b.innerHTML = '🎉 ' + currentUser + ' ganhou +' + (pay-tot) + '! 🎉'; document.body.append(b); setTimeout(() => b.remove(), 3300);
-  if(!pRun){ pRun = true; requestAnimationFrame(pf); }
+// chance (modo teste: o botão do topo mostra a chance em uso)
+let mode='fair',pct=50;
+function pick(){const list=Object.values(bets);let tot=0;list.forEach(b=>tot+=b.amt);if(mode==='fair')return Math.floor(Math.random()*37);const W=[],L=[];for(let n=0;n<=36;n++){let p=0;list.forEach(b=>{if(b.nums.includes(n))p+=b.amt*(b.pay+1)});(p>tot?W:L).push(n)}if(!W.length||!L.length)return Math.floor(Math.random()*37);const pool=Math.random()*100<pct?W:L;return pool[Math.floor(Math.random()*pool.length)]}
+$('#pct').oninput=()=>{$('#pctr').value=$('#pct').value;document.querySelector('input[name=md][value=custom]').checked=true};
+$('#pctr').oninput=()=>{$('#pct').value=$('#pctr').value;document.querySelector('input[name=md][value=custom]').checked=true};
+$('#cfgb').onclick=()=>$('#cfg').classList.add('show');
+$('#cfgx').onclick=()=>{mode=document.querySelector('input[name=md]:checked').value;pct=Math.min(100,Math.max(0,Math.round(Number($('#pct').value)||0)));$('#pct').value=pct;$('#pctr').value=pct;$('#cfgb').textContent=mode==='fair'?'🎯 Justa':'🎯 '+pct+'%';$('#cfg').classList.remove('show');$('#cfgb').classList.toggle('on',mode!=='fair')};
+
+// festa: balões, corações, estrelas e confete
+const pc=$('#party'),px=pc.getContext('2d');let ps=[],pRun=false;
+function party(pay,tot){
+ const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight;pc.width=W*dpr;pc.height=H*dpr;px.setTransform(dpr,0,0,dpr,0,0);
+ const k=pay>=tot*10?1.6:1,S=Math.max(18,Math.min(W,H)/11),R=(a,b)=>a+Math.random()*(b-a),COL=['#e74c3c','#f1c40f','#3498db','#2ecc71','#e84393','#9b59b6','#ff9f43'];
+ for(let i=0;i<16*k;i++)ps.push({t:'b',x:R(0,W),y:H+R(20,H*.5),vy:-R(1.8,3.6),vx:0,s:R(S*.8,S*1.4),c:COL[i%COL.length],ph:R(0,6.3)});
+ for(let i=0;i<20*k;i++)ps.push({t:'e',e:['❤️','💖','💗','💕'][i%4],x:R(0,W),y:-R(10,H*.8),vy:R(1.2,2.8),vx:R(-.6,.6),s:R(S*.5,S*.9),r:R(0,6),vr:R(-.05,.05),ph:R(0,6.3)});
+ for(let i=0;i<20*k;i++)ps.push({t:'e',e:['⭐','🌟','✨'][i%3],x:R(0,W),y:-R(10,H*.8),vy:R(1.2,2.8),vx:R(-.6,.6),s:R(S*.5,S*.9),r:R(0,6),vr:R(-.08,.08),ph:R(0,6.3)});
+ for(let i=0;i<50*k;i++)ps.push({t:'c',x:R(0,W),y:-R(10,H),vy:R(2,5),vx:R(-1,1),w:R(6,11),h:R(4,8),c:COL[i%COL.length],r:R(0,6),vr:R(-.2,.2),ph:R(0,6.3)});
+ const b=document.createElement('div');b.id='banner';b.innerHTML='🎉 Você ganhou +'+(pay-tot)+'! 🎉';document.body.append(b);setTimeout(()=>b.remove(),3300);
+ if(!pRun){pRun=true;requestAnimationFrame(pf)}
 }
 function pf(){
-  const W = innerWidth, H = innerHeight; px.clearRect(0,0,W,H);
-  ps = ps.filter(p => p.t==='b' ? p.y > -p.s*2 : p.y < H+40);
-  for(const p of ps){
-    p.ph += .04; p.y += p.vy; p.x += (p.vx||0) + Math.sin(p.ph)*(p.t==='b'?.8:.5);
-    px.save(); px.translate(p.x, p.y);
-    if(p.t==='b'){ const rx=p.s*.38, ry=p.s*.48; px.fillStyle=p.c; px.beginPath(); px.ellipse(0,0,rx,ry,0,0,Math.PI*2); px.fill(); px.fillStyle='rgba(255,255,255,.35)'; px.beginPath(); px.ellipse(-rx*.35,-ry*.35,rx*.25,ry*.35,.5,0,Math.PI*2); px.fill(); px.fillStyle=p.c; px.beginPath(); px.moveTo(0,ry); px.lineTo(-3,ry+5); px.lineTo(3,ry+5); px.fill(); px.strokeStyle='rgba(255,255,255,.6)'; px.lineWidth=1; px.beginPath(); px.moveTo(0,ry+5); px.quadraticCurveTo(Math.sin(p.ph)*8,ry+p.s*.5,0,ry+p.s*.9); px.stroke(); }
-    else if(p.t==='e'){ px.rotate(p.r+=p.vr); px.font=p.s+'px serif'; px.textAlign='center'; px.textBaseline='middle'; px.fillText(p.e,0,0); }
-    else{ px.rotate(p.r+=p.vr); px.fillStyle=p.c; px.fillRect(-p.w/2,-p.h/2,p.w,p.h); }
-    px.restore();
-  }
-  if(ps.length) requestAnimationFrame(pf); else { pRun = false; px.clearRect(0,0,W,H); }
+ const W=innerWidth,H=innerHeight;px.clearRect(0,0,W,H);
+ ps=ps.filter(p=>p.t==='b'?p.y>-p.s*2:p.y<H+40);
+ for(const p of ps){
+  p.ph+=.04;p.y+=p.vy;p.x+=(p.vx||0)+Math.sin(p.ph)*(p.t==='b'?.8:.5);
+  px.save();px.translate(p.x,p.y);
+  if(p.t==='b'){const rx=p.s*.38,ry=p.s*.48;px.fillStyle=p.c;px.beginPath();px.ellipse(0,0,rx,ry,0,0,TAU);px.fill();px.fillStyle='rgba(255,255,255,.35)';px.beginPath();px.ellipse(-rx*.35,-ry*.35,rx*.25,ry*.35,.5,0,TAU);px.fill();px.fillStyle=p.c;px.beginPath();px.moveTo(0,ry);px.lineTo(-3,ry+5);px.lineTo(3,ry+5);px.fill();px.strokeStyle='rgba(255,255,255,.6)';px.lineWidth=1;px.beginPath();px.moveTo(0,ry+5);px.quadraticCurveTo(Math.sin(p.ph)*8,ry+p.s*.5,0,ry+p.s*.9);px.stroke()}
+  else if(p.t==='e'){px.rotate(p.r+=p.vr);px.font=p.s+'px serif';px.textAlign='center';px.textBaseline='middle';px.fillText(p.e,0,0)}
+  else{px.rotate(p.r+=p.vr);px.fillStyle=p.c;px.fillRect(-p.w/2,-p.h/2,p.w,p.h)}
+  px.restore();
+ }
+ if(ps.length)requestAnimationFrame(pf);else{pRun=false;px.clearRect(0,0,W,H)}
 }
 
-const cv = $('#wheel'), ctx = cv.getContext('2d'), SEG = 2*Math.PI/37, TAU = 2*Math.PI;
-function draw(wa, ba, br){
-  const k = cv.width/340; ctx.setTransform(k,0,0,k,0,0); ctx.clearRect(0,0,340,340);
-  const C = 170;
-  ctx.fillStyle = '#4a2e14'; ctx.beginPath(); ctx.arc(C,C,168,0,TAU); ctx.fill();
-  ctx.fillStyle = '#8a6a2a'; ctx.beginPath(); ctx.arc(C,C,158,0,TAU); ctx.fill();
-  for(let i=0; i<37; i++){
-    const n = ORDER[i], a0 = wa+(i-.5)*SEG-Math.PI/2, a1 = wa+(i+.5)*SEG-Math.PI/2;
-    ctx.beginPath(); ctx.arc(C,C,152,a0,a1); ctx.arc(C,C,104,a1,a0,true); ctx.closePath();
-    ctx.fillStyle = n===0 ? '#1f7a3f' : RED.has(n) ? '#b3261e' : '#151515'; ctx.fill();
-    ctx.strokeStyle = '#d4af37'; ctx.lineWidth = .8; ctx.stroke();
-    ctx.save(); ctx.translate(C,C); ctx.rotate(wa+i*SEG); ctx.translate(0,-134);
-    ctx.fillStyle = '#f4ecd8'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(n,0,0); ctx.restore();
-  }
-  ctx.fillStyle = '#2a1a0a'; ctx.beginPath(); ctx.arc(C,C,104,0,TAU); ctx.fill();
-  ctx.fillStyle = '#0d4a34'; ctx.beginPath(); ctx.arc(C,C,92,0,TAU); ctx.fill();
-  ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 3;
-  for(let j=0; j<4; j++){ const a = wa+j*Math.PI/2; ctx.beginPath(); ctx.moveTo(C,C); ctx.lineTo(C+70*Math.sin(a), C-70*Math.cos(a)); ctx.stroke(); }
-  ctx.fillStyle = '#d4af37'; ctx.beginPath(); ctx.arc(C,C,12,0,TAU); ctx.fill();
-  ctx.fillStyle = '#f4ecd8'; ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
-  ctx.beginPath(); ctx.arc(C+br*Math.sin(ba), C-br*Math.cos(ba), 6, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
-  ctx.fillStyle = '#d4af37'; ctx.beginPath(); ctx.moveTo(C-9,2); ctx.lineTo(C+9,2); ctx.lineTo(C,20); ctx.fill();
+// roda
+const cv=$('#wheel'),ctx=cv.getContext('2d'),SEG=2*Math.PI/37,TAU=2*Math.PI;
+function draw(wa,ba,br){
+ const k=cv.width/340;ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,340,340);
+ const C=170;
+ ctx.fillStyle='#4a2e14';ctx.beginPath();ctx.arc(C,C,168,0,TAU);ctx.fill();
+ ctx.fillStyle='#8a6a2a';ctx.beginPath();ctx.arc(C,C,158,0,TAU);ctx.fill();
+ for(let i=0;i<37;i++){
+  const n=ORDER[i],a0=wa+(i-.5)*SEG-Math.PI/2,a1=wa+(i+.5)*SEG-Math.PI/2;
+  ctx.beginPath();ctx.arc(C,C,152,a0,a1);ctx.arc(C,C,104,a1,a0,true);ctx.closePath();
+  ctx.fillStyle=n===0?'#1f7a3f':RED.has(n)?'#b3261e':'#151515';ctx.fill();
+  ctx.strokeStyle='#d4af37';ctx.lineWidth=.8;ctx.stroke();
+  ctx.save();ctx.translate(C,C);ctx.rotate(wa+i*SEG);ctx.translate(0,-134);
+  ctx.fillStyle='#f4ecd8';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n,0,0);ctx.restore();
+ }
+ ctx.fillStyle='#2a1a0a';ctx.beginPath();ctx.arc(C,C,104,0,TAU);ctx.fill();
+ ctx.fillStyle='#0d4a34';ctx.beginPath();ctx.arc(C,C,92,0,TAU);ctx.fill();
+ ctx.strokeStyle='#d4af37';ctx.lineWidth=3;
+ for(let j=0;j<4;j++){const a=wa+j*Math.PI/2;ctx.beginPath();ctx.moveTo(C,C);ctx.lineTo(C+70*Math.sin(a),C-70*Math.cos(a));ctx.stroke()}
+ ctx.fillStyle='#d4af37';ctx.beginPath();ctx.arc(C,C,12,0,TAU);ctx.fill();
+ ctx.fillStyle='#f4ecd8';ctx.shadowColor='#000';ctx.shadowBlur=4;
+ ctx.beginPath();ctx.arc(C+br*Math.sin(ba),C-br*Math.cos(ba),6,0,TAU);ctx.fill();ctx.shadowBlur=0;
+ ctx.fillStyle='#d4af37';ctx.beginPath();ctx.moveTo(C-9,2);ctx.lineTo(C+9,2);ctx.lineTo(C,20);ctx.fill();
 }
 draw(0,0,118);
 
-$('#spin').onclick = () => {
-  if(busy) return;
-  busy = true; clearWin(); render();
-  msg('Bola em jogo…');
-  $('#spin-info').textContent = '🎰 ' + currentUser + ' girou a roleta...';
-  ac();
-  const win = pick(), i = ORDER.indexOf(win);
-  
-  if(mqttClient){
-    mqttClient.publish(MQTT_TOPIC, JSON.stringify({ type:'spin', user:currentUser, number:win }));
-  }
-  
-  const D = 11000, w0 = wA, wf = w0 + TAU*(4 + Math.random()), bf = wf + i*SEG, b0 = bA;
-  const Bt = (((b0-bf)%TAU)+TAU)%TAU + TAU*13, t0 = performance.now(); let li=null, lj=null;
-  (function f(now){
-    const p = Math.min(1, (now-t0)/D), ew = 1 - Math.pow(1-p, 3), eb = 1 - Math.pow(1-p, 2.6);
-    const r = p<.75 ? 148 : 148 - 30*Math.pow((p-.75)/.25, 1.6) + (p>.9 ? Math.sin((p-.9)*140)*(1-p)*60 : 0);
-    const wa = w0 + (wf-w0)*ew, ba = b0 - Bt*eb; draw(wa, ba, r);
-    if(p<=.65){ const j = Math.floor(ba/(SEG*6)); if(j!==lj){ lj=j; click(.1, 2400+Math.random()*1200, .03); } }
-    else{ const ix = Math.floor((ba-wa)/SEG + .5); if(ix!==li){ li=ix; click(.08 + .5*(p-.65)/.35, 2000+Math.random()*1500, .045); } }
-    if(p<1) requestAnimationFrame(f); else { wA = wf%TAU; bA = bf%TAU; draw(wA, bA, 118); finish(win); }
-  })(t0);
+$('#spin').onclick=()=>{
+ if(busy)return;busy=true;clearWin();render();msg('Bola em jogo…');ac();
+ const win=pick(),i=ORDER.indexOf(win);
+ const D=11000,w0=wA,wf=w0+TAU*(4+Math.random()),bf=wf+i*SEG,b0=bA;
+ const Bt=(((b0-bf)%TAU)+TAU)%TAU+TAU*13,t0=performance.now();let li=null,lj=null;
+ (function f(now){
+  const p=Math.min(1,(now-t0)/D),ew=1-Math.pow(1-p,3),eb=1-Math.pow(1-p,2.6);
+  const r=p<.75?148:148-30*Math.pow((p-.75)/.25,1.6)+(p>.9?Math.sin((p-.9)*140)*(1-p)*60:0);
+  const wa=w0+(wf-w0)*ew,ba=b0-Bt*eb;draw(wa,ba,r);
+  if(p<=.65){const j=Math.floor(ba/(SEG*6));if(j!==lj){lj=j;click(.1,2400+Math.random()*1200,.03)}}
+  else{const ix=Math.floor((ba-wa)/SEG+.5);if(ix!==li){li=ix;click(.08+.5*(p-.65)/.35,2000+Math.random()*1500,.045)}}
+  if(p<1)requestAnimationFrame(f);else{wA=wf%TAU;bA=bf%TAU;draw(wA,bA,118);finish(win)}
+ })(t0);
 };
-
-function runRemoteSpin(number){
-  busy = true;
-  const i = ORDER.indexOf(number);
-  const D = 11000, w0 = wA, wf = w0 + TAU*(4 + Math.random()), bf = wf + i*SEG, b0 = bA;
-  const Bt = (((b0-bf)%TAU)+TAU)%TAU + TAU*13, t0 = performance.now(); let li=null, lj=null;
-  (function f(now){
-    const p = Math.min(1, (now-t0)/D), ew = 1 - Math.pow(1-p, 3), eb = 1 - Math.pow(1-p, 2.6);
-    const r = p<.75 ? 148 : 148 - 30*Math.pow((p-.75)/.25, 1.6) + (p>.9 ? Math.sin((p-.9)*140)*(1-p)*60 : 0);
-    const wa = w0 + (wf-w0)*ew, ba = b0 - Bt*eb; draw(wa, ba, r);
-    if(p<=.65){ const j = Math.floor(ba/(SEG*6)); if(j!==lj){ lj=j; click(.1, 2400+Math.random()*1200, .03); } }
-    else{ const ix = Math.floor((ba-wa)/SEG + .5); if(ix!==li){ li=ix; click(.08 + .5*(p-.65)/.35, 2000+Math.random()*1500, .045); } }
-    if(p<1) requestAnimationFrame(f); else { wA = wf%TAU; bA = bf%TAU; draw(wA, bA, 118); }
-  })(t0);
-}
-
 function finish(n){
-  let tot=0, pay=0;
-  const list = Object.values(bets);
-  list.forEach(b => { tot += b.amt; if(b.nums.includes(n)) pay += b.amt*(b.pay+1); });
-  bal += pay; last = list.map(b => ({...b})); bets = {}; stack = []; busy = false;
-  document.querySelectorAll(`[data-n="${n}"]`).forEach(x => x.classList.add('win'));
-  const net = pay - tot;
-  click(.8, 1200, .14);
-  setTimeout(() => pay ? chime() : thud(), 220);
-  if(pay > tot) party(pay, tot);
-  
-  let t = `Saiu <b>${n}</b> ${CN[colr(n)]}.<br>`;
-  if(pay > 0) t += `Recebeu ${pay} (${net>0?'lucro':net===0?'empate':'prejuízo'} de ${Math.abs(net)}).`;
-  else t += `Nenhuma aposta ganhou (−${tot}).`;
-  if(bal === 0) t = `Saiu <b>${n}</b> ${CN[colr(n)]}. Fichas acabaram.`;
-  msg(t);
-  $('#spin-info').textContent = '';
-  
-  const h = document.createElement('span'); h.className = colr(n); h.textContent = n; $('#hist').prepend(h);
-  while($('#hist').children.length > 12) $('#hist').lastChild.remove();
-  
-  if(mqttClient){
-    mqttClient.publish(MQTT_TOPIC, JSON.stringify({ type:'result', user:currentUser, number:n, pay, tot }));
-  }
-  render();
+ let tot=0,pay=0;
+ const list=Object.values(bets);
+ list.forEach(b=>{tot+=b.amt;if(b.nums.includes(n))pay+=b.amt*(b.pay+1)});
+ bal+=pay;last=list.map(b=>({...b}));bets={};stack=[];busy=false;
+ document.querySelectorAll(`[data-n="${n}"]`).forEach(x=>x.classList.add('win'));
+ const net=pay-tot;click(.8,1200,.14);setTimeout(()=>pay?chime():thud(),220);if(pay>tot)party(pay,tot);
+ let t=`Saiu <b>${n}</b> ${CN[colr(n)]}.<br>`+(pay?`Recebeu ${pay} (${net>=0?'lucro':'prejuízo'} de ${Math.abs(net)}).`:`Nenhuma aposta ganhou (−${tot}).`);
+ if(bal===0)t=`Saiu <b>${n}</b> ${CN[colr(n)]}. Fichas acabaram: toque em Reiniciar.`;
+ msg(t);
+ const h=document.createElement('span');h.className=colr(n);h.textContent=n;$('#hist').prepend(h);
+ while($('#hist').children.length>12)$('#hist').lastChild.remove();
+ render();
 }
+render();
 </script>
 </body>
 </html>
