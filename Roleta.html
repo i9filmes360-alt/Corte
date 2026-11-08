@@ -55,6 +55,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 #rot{z-index:60;font-size:1.2rem;flex-direction:column;gap:10px}
 @media(orientation:portrait) and (max-width:700px){#rot{display:flex}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 <header>
@@ -218,9 +219,11 @@ function pf(){
 }
 
 // roda
-const cv=$('#wheel'),ctx=cv.getContext('2d'),SEG=2*Math.PI/37,TAU=2*Math.PI;
-function draw(wa,ba,br){
- const k=cv.width/340;ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,340,340);
+const cv=$('#wheel'),G3=typeof THREE!=='undefined',tex=document.createElement('canvas'),SEG=2*Math.PI/37,TAU=2*Math.PI;
+tex.width=tex.height=1024;
+let ctx=tex.getContext('2d'),R3=null;
+function draw2d(wa,ba,br){
+ const k=ctx.canvas.width/340;ctx.setTransform(k,0,0,k,0,0);ctx.clearRect(0,0,340,340);
  const C=170;
  ctx.fillStyle='#4a2e14';ctx.beginPath();ctx.arc(C,C,168,0,TAU);ctx.fill();
  ctx.fillStyle='#8a6a2a';ctx.beginPath();ctx.arc(C,C,158,0,TAU);ctx.fill();
@@ -239,8 +242,50 @@ function draw(wa,ba,br){
  ctx.fillStyle='#d4af37';ctx.beginPath();ctx.arc(C,C,12,0,TAU);ctx.fill();
  ctx.fillStyle='#f4ecd8';ctx.shadowColor='#000';ctx.shadowBlur=4;
  ctx.beginPath();ctx.arc(C+br*Math.sin(ba),C-br*Math.cos(ba),6,0,TAU);ctx.fill();ctx.shadowBlur=0;
- ctx.fillStyle='#d4af37';ctx.beginPath();ctx.moveTo(C-9,2);ctx.lineTo(C+9,2);ctx.lineTo(C,20);ctx.fill();
+ if(ctx.canvas===cv){ctx.fillStyle='#d4af37';ctx.beginPath();ctx.moveTo(C-9,2);ctx.lineTo(C+9,2);ctx.lineTo(C,20);ctx.fill()}
 }
+// ===== roda em 3D (Three.js) =====
+function init3(){
+ let c=null;
+ try{
+  c=document.createElement('canvas');cv.parentNode.insertBefore(c,cv);
+  const rd=new THREE.WebGLRenderer({canvas:c,antialias:true,alpha:true}),w=c.clientWidth||340;
+  rd.setPixelRatio(Math.min(2,devicePixelRatio||1));rd.setSize(w,w,false);
+  rd.shadowMap.enabled=true;rd.shadowMap.type=THREE.PCFSoftShadowMap;
+  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(36,1,.1,100);
+  cam.position.set(0,11.4,8.2);cam.lookAt(0,0,0);
+  sc.add(new THREE.AmbientLight(0xffffff,.55));
+  const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(4,10,5);dl.castShadow=true;
+  Object.assign(dl.shadow.camera,{left:-5,right:5,top:5,bottom:-5});dl.shadow.mapSize.set(1024,1024);sc.add(dl);
+  const pl=new THREE.PointLight(0xffd79a,.7,30);pl.position.set(-3,6,-2);sc.add(pl);
+  const M=o=>new THREE.MeshStandardMaterial(o);
+  const wood=M({color:0x5b3315,roughness:.32,metalness:.15,side:THREE.DoubleSide}),gold=M({color:0xd4af37,roughness:.25,metalness:.9});
+  const prof=[[3.4,0],[3.5,.1],[3.75,.3],[4,.36],[4.15,.3],[4.15,-.5],[0,-.5]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const bowl=new THREE.Mesh(new THREE.LatheGeometry(prof,96),wood);bowl.receiveShadow=true;sc.add(bowl);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(4.12,.06,12,96),gold);ring.rotation.x=Math.PI/2;ring.position.y=.33;sc.add(ring);
+  const wheel=new THREE.Group();sc.add(wheel);
+  const tx=new THREE.CanvasTexture(tex);tx.anisotropy=rd.capabilities.getMaxAnisotropy();
+  const disc=new THREE.Mesh(new THREE.CircleGeometry(3.4,96),M({map:tx,roughness:.5,metalness:.1}));
+  disc.rotation.x=-Math.PI/2;disc.position.y=.05;disc.receiveShadow=true;wheel.add(disc);
+  for(let i=0;i<37;i++){const a=(i+.5)*SEG,f=new THREE.Mesh(new THREE.BoxGeometry(.03,.07,.96),gold);f.position.set(2.56*Math.sin(a),.09,-2.56*Math.cos(a));f.rotation.y=-a;wheel.add(f)}
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(.55,.9,32),gold);cone.position.y=.5;wheel.add(cone);
+  const knob=new THREE.Mesh(new THREE.SphereGeometry(.14,16,12),gold);knob.position.y=1;wheel.add(knob);
+  for(let j=0;j<4;j++){const a=j*Math.PI/2,sp=new THREE.Mesh(new THREE.BoxGeometry(.08,.05,1.5),gold);sp.position.set(1.05*Math.sin(a),.28,-1.05*Math.cos(a));sp.rotation.y=-a;wheel.add(sp)}
+  const ball=new THREE.Mesh(new THREE.SphereGeometry(.12,24,16),M({color:0xf7f3e8,roughness:.1,metalness:.3}));ball.castShadow=true;sc.add(ball);
+  const pt=new THREE.Mesh(new THREE.ConeGeometry(.16,.4,16),gold);pt.rotation.x=Math.PI;pt.position.set(0,.55,-3.75);sc.add(pt);
+  cv.style.display='none';
+  return{rd,sc,cam,wheel,ball,c};
+ }catch(e){if(c)c.remove();return null}
+}
+function draw(wa,ba,br){
+ if(!R3)return draw2d(wa,ba,br);
+ const r=(128+(br-118)*1.8)*.02,t=Math.max(-.3,Math.min(1.2,(br-118)/30));
+ R3.wheel.rotation.y=-wa;
+ R3.ball.position.set(r*Math.sin(ba),.15+t*.19,-r*Math.cos(ba));
+ R3.rd.render(R3.sc,R3.cam);
+}
+if(G3){draw2d(0,0,-9999);R3=init3();if(!R3)ctx=cv.getContext('2d')}
+addEventListener('resize',()=>{if(R3){const w=R3.c.clientWidth;R3.rd.setSize(w,w,false);draw(wA,bA,118)}});
 draw(0,0,118);
 
 $('#spin').onclick=()=>{
