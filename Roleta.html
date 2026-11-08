@@ -44,9 +44,10 @@ button:disabled{opacity:.4;cursor:not-allowed}
 #spin{width:min(100%,220px);background:var(--gold);color:#1a1405;font-weight:700;font-size:clamp(13px,4vh,20px);padding:clamp(5px,1.6vh,10px) 12px}
 #spin:hover:not(:disabled){background:#e6c34d}
 .hd{display:flex;align-items:center;gap:10px;min-width:0}#cfgb{flex:none;border-width:2px;font-weight:700}#cfgb.on{background:var(--gold);color:#1a1405}.stats{flex:none}h1{min-width:0;overflow:hidden;text-overflow:ellipsis}@media(max-width:760px){h1{display:none}}
-#help,#cfg,#rot{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;background:rgba(10,31,23,.96);line-height:1.5}
-#help.show,#cfg.show{display:flex}
+#help,#cfg,#mpj,#rot{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;background:rgba(10,31,23,.96);line-height:1.5}
+#help.show,#cfg.show,#mpj.show{display:flex}
 #cfg div{max-width:480px;font-size:clamp(12px,3.4vh,16px);line-height:1.6;text-align:left}#cfg input[type=number]{width:62px;padding:3px;font:inherit;text-align:center;border-radius:4px;border:1px solid var(--gold);background:#10261d;color:var(--ivory)}#cfg input[type=range]{width:100%;accent-color:var(--gold)}#cfg p{font-size:.85em;opacity:.8;margin:6px 0}#cfg button{margin-top:6px}
+#mpj div{max-width:420px;font-size:clamp(12px,3.4vh,16px);line-height:1.9;text-align:left}#mpj input{width:100%;padding:5px 8px;font:inherit;border-radius:4px;border:1px solid var(--gold);background:#10261d;color:var(--ivory)}#mpj p{font-size:.85em;opacity:.8;margin:8px 0;line-height:1.4}#mpi{cursor:pointer;white-space:nowrap}
 #party{position:fixed;inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;pointer-events:none;z-index:45}
 #banner{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:46;font-size:clamp(20px,8vh,48px);font-weight:700;color:var(--gold);text-shadow:0 2px 10px #000,0 0 24px #d4af37aa;text-align:center;pointer-events:none;animation:pop 3.2s ease forwards}
 @keyframes pop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}12%{transform:translate(-50%,-50%) scale(1.15);opacity:1}22%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
@@ -56,11 +57,12 @@ button:disabled{opacity:.4;cursor:not-allowed}
 @media(orientation:portrait) and (max-width:700px){#rot{display:flex}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
 </head>
 <body>
 <header>
 <div class="hd"><h1>Roleta Europeia</h1><button id="cfgb" title="Chance de ganhar">🎯 Justa</button></div>
-<div class="stats"><span>Fichas<b id="bal">1000</b></span><span>Aposta<b id="tot">0</b></span><button id="helpb">? Ajuda</button><button id="mute">🔊</button></div>
+<div class="stats"><span>Fichas<b id="bal">1000</b></span><span>Aposta<b id="tot">0</b></span><span id="mpi" title="Multiplayer">👥 Sozinho</span><button id="mpx" style="display:none">🚪 Sair da sala</button><button id="helpb">? Ajuda</button><button id="mute">🔊</button></div>
 </header>
 <div class="game">
 <div class="side">
@@ -78,6 +80,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 <div id="help"><div><b>Como apostar</b><br>Escolha uma ficha e toque na mesa. Toque no centro de um número para o pleno (paga 35:1). Nas bordas entre números: cavalo, 2 números (17:1); rua, na borda de baixo (11:1); quadra, no cruzamento de 4 números (8:1); linha dupla, na borda de baixo entre duas ruas (5:1). Junto ao zero: trio (11:1) e primeira quadra 0‑1‑2‑3 (8:1). Colunas e dúzias pagam 2:1. Vermelho/preto, par/ímpar e 1–18/19–36 pagam 1:1. O zero faz perder as apostas simples.<br><button id="helpx">Fechar</button></div></div>
 <div id="cfg"><div><b>Chance de ganhar (modo teste)</b><br><label><input type="radio" name="md" value="fair" checked> Justa: sorteio puro, como a roleta real</label><br><label><input type="radio" name="md" value="custom"> Personalizada</label><br>Chance de lucrar em cada rodada: <input id="pct" type="number" min="0" max="100" step="1" value="50"> %<input id="pctr" type="range" min="0" max="100" value="50"><p>Na personalizada, a rodada termina em lucro com essa chance, considerando as apostas que estão na mesa. O botão do topo sempre mostra a chance em uso.</p><button id="cfgx">Salvar</button></div></div>
 <canvas id="party"></canvas>
+<div id="mpj"><div><b>👥 Jogar com outras pessoas</b><br>Seu nome<input id="mpn" maxlength="14" placeholder="Ex.: Ana"><br>Sala (quem usar o mesmo nome de sala joga junto)<input id="mpr" value="principal" maxlength="20"><button id="mpgo">Entrar</button> <button id="mpsolo">Jogar sozinho</button><p>Quando alguém girar, a roleta gira ao mesmo tempo para todos da sala. Cada um aposta com as suas fichas. Em sala, o sorteio é sempre justo.</p></div></div>
 <div id="rot"><div style="font-size:3rem">🔄</div>Gire o celular para o modo horizontal para jogar</div>
 <script>
 const $=s=>document.querySelector(s);
@@ -155,7 +158,7 @@ function render(){
   board.append(c);
  }
  $('#bal').textContent=bal;$('#tot').textContent=tot;
- $('#spin').disabled=busy||!tot;
+ $('#spin').disabled=busy||calling||!tot;
  ['undo','clear','dbl'].forEach(i=>$('#'+i).disabled=busy||!tot);
  $('#rep').disabled=busy||tot>0||!last;
 }
@@ -186,11 +189,11 @@ $('#mute').onclick=()=>{muted=!muted;$('#mute').textContent=muted?'🔇':'🔊'}
 
 // chance (modo teste: o botão do topo mostra a chance em uso)
 let mode='fair',pct=50;
-function pick(){const list=Object.values(bets);let tot=0;list.forEach(b=>tot+=b.amt);if(mode==='fair')return Math.floor(Math.random()*37);const W=[],L=[];for(let n=0;n<=36;n++){let p=0;list.forEach(b=>{if(b.nums.includes(n))p+=b.amt*(b.pay+1)});(p>tot?W:L).push(n)}if(!W.length||!L.length)return Math.floor(Math.random()*37);const pool=Math.random()*100<pct?W:L;return pool[Math.floor(Math.random()*pool.length)]}
+function pick(){const list=Object.values(bets);let tot=0;list.forEach(b=>tot+=b.amt);if(mode==='fair'||MP.on)return Math.floor(Math.random()*37);const W=[],L=[];for(let n=0;n<=36;n++){let p=0;list.forEach(b=>{if(b.nums.includes(n))p+=b.amt*(b.pay+1)});(p>tot?W:L).push(n)}if(!W.length||!L.length)return Math.floor(Math.random()*37);const pool=Math.random()*100<pct?W:L;return pool[Math.floor(Math.random()*pool.length)]}
 $('#pct').oninput=()=>{$('#pctr').value=$('#pct').value;document.querySelector('input[name=md][value=custom]').checked=true};
 $('#pctr').oninput=()=>{$('#pct').value=$('#pctr').value;document.querySelector('input[name=md][value=custom]').checked=true};
 $('#cfgb').onclick=()=>$('#cfg').classList.add('show');
-$('#cfgx').onclick=()=>{mode=document.querySelector('input[name=md]:checked').value;pct=Math.min(100,Math.max(0,Math.round(Number($('#pct').value)||0)));$('#pct').value=pct;$('#pctr').value=pct;$('#cfgb').textContent=mode==='fair'?'🎯 Justa':'🎯 '+pct+'%';$('#cfg').classList.remove('show');$('#cfgb').classList.toggle('on',mode!=='fair')};
+$('#cfgx').onclick=()=>{if(MP.on&&document.querySelector('input[name=md]:checked').value==='custom'){alert('Na sala multiplayer o sorteio é sempre justo, para ninguém ser enganado.');return}mode=document.querySelector('input[name=md]:checked').value;pct=Math.min(100,Math.max(0,Math.round(Number($('#pct').value)||0)));$('#pct').value=pct;$('#pctr').value=pct;$('#cfgb').textContent=mode==='fair'?'🎯 Justa':'🎯 '+pct+'%';$('#cfg').classList.remove('show');$('#cfgb').classList.toggle('on',mode!=='fair')};
 
 // festa: balões, corações, estrelas e confete
 const pc=$('#party'),px=pc.getContext('2d');let ps=[],pRun=false;
@@ -217,6 +220,54 @@ function pf(){
  }
  if(ps.length)requestAnimationFrame(pf);else{pRun=false;px.clearRect(0,0,W,H)}
 }
+
+// ===== multiplayer (MQTT): a roleta gira ao mesmo tempo para todos da sala =====
+const MP={on:false,name:'',topic:'',c:null,cur:null,synced:false,peers:{},id:Math.random().toString(36).slice(2,8),
+ pub(o){if(MP.c&&MP.c.connected)MP.c.publish(MP.topic,JSON.stringify({...o,id:MP.id}))}};
+function upMp(){
+ const now=Date.now();for(const k in MP.peers)if(now-MP.peers[k].ts>25000)delete MP.peers[k];
+ $('#mpi').textContent=MP.on?'👥 '+Math.max(1,Object.keys(MP.peers).length)+' online':'👥 Sozinho';
+ $('#mpi').title=MP.on?Object.values(MP.peers).map(p=>p.u).join(', '):'Toque para entrar numa sala';
+ $('#mpx').style.display=MP.on?'':'none';
+}
+function onCall(d){
+ if(busy||calling)return;
+ calling=true;render();const P={...d.P,u:d.u};let s=5;
+ (function tick(){
+  if(s>0){msg('🔔 <b>'+d.u+'</b> vai girar! Façam suas apostas… <b>'+s+'</b>');tone(660,0,.12,.12);s--;setTimeout(tick,1000)}
+  else{calling=false;startSpin(P)}
+ })();
+}
+function mpMsg(d){
+ if(d.t==='hi'){const nw=!MP.peers[d.id];MP.peers[d.id]={u:d.u,ts:Date.now()};if(nw&&d.id!==MP.id)MP.pub({t:'hi',u:MP.name});upMp()}
+ else if(d.t==='bye'){delete MP.peers[d.id];upMp()}
+ else if(d.t==='call')onCall(d);
+ else if(d.t==='need'&&d.id!==MP.id)setTimeout(()=>MP.pub({t:'sync',to:d.id,wA,bA,cur:MP.cur&&{P:MP.cur.P,el:performance.now()-MP.cur.t0}}),100+Math.random()*500);
+ else if(d.t==='sync'&&d.to===MP.id&&!MP.synced){MP.synced=true;if(!busy&&!calling){wA=d.wA;bA=d.bA;draw(wA,bA,118);if(d.cur)startSpin({...d.cur.P,el:d.cur.el})}}
+}
+function mpJoin(name,room){
+ try{localStorage.setItem('r3d_nome',name)}catch(e){}
+ if(typeof mqtt==='undefined'){alert('Não foi possível carregar o multiplayer. Você vai jogar sozinho.');return}
+ MP.name=name;MP.topic='roleta3d/v1/'+room;
+ const c=MP.c=mqtt.connect('wss://broker.emqx.io:8084/mqtt',{clientId:'r3d_'+MP.id,reconnectPeriod:3000,connectTimeout:8000});
+ c.on('connect',()=>{MP.on=true;mode='fair';$('#cfgb').textContent='🎯 Justa';$('#cfgb').classList.remove('on');c.subscribe(MP.topic);MP.pub({t:'hi',u:name});if(!MP.synced)MP.pub({t:'need'});upMp();render()});
+ c.on('close',()=>{if(MP.c!==c)return;MP.on=false;upMp()});
+ c.on('message',(t,m)=>{if(MP.c!==c)return;let d;try{d=JSON.parse(m.toString())}catch(e){return}mpMsg(d)});
+ MP.iv=setInterval(()=>{MP.pub({t:'hi',u:name});upMp()},8000);
+}
+$('#mpi').onclick=()=>{if(!MP.on)$('#mpj').classList.add('show')};
+$('#mpgo').onclick=()=>{const n=$('#mpn').value.trim().slice(0,14)||'Jogador'+Math.floor(Math.random()*900+100),r=($('#mpr').value.trim()||'principal').replace(/[^\w-]/g,'').slice(0,20)||'principal';$('#mpj').classList.remove('show');mpJoin(n,r)};
+$('#mpsolo').onclick=()=>$('#mpj').classList.remove('show');
+function sairSala(){
+ if(calling){alert('Espere a contagem terminar para sair da sala.');return}
+ MP.pub({t:'bye'});clearInterval(MP.iv);
+ const c=MP.c;MP.on=false;MP.c=null;MP.synced=false;MP.peers={};MP.cur=null;
+ if(c)c.end();
+ upMp();render();msg('Você saiu da sala. Agora joga sozinho.');
+}
+$('#mpx').onclick=sairSala;
+try{$('#mpn').value=localStorage.getItem('r3d_nome')||''}catch(e){}
+if(typeof mqtt!=='undefined')$('#mpj').classList.add('show');
 
 // roda
 const cv=$('#wheel'),G3=typeof THREE!=='undefined',tex=document.createElement('canvas'),SEG=2*Math.PI/37,TAU=2*Math.PI;
@@ -288,11 +339,12 @@ if(G3){draw2d(0,0,-9999);R3=init3();if(!R3)ctx=cv.getContext('2d')}
 addEventListener('resize',()=>{if(R3){const w=R3.c.clientWidth;R3.rd.setSize(w,w,false);draw(wA,bA,118)}});
 draw(0,0,118);
 
-$('#spin').onclick=()=>{
- if(busy)return;busy=true;clearWin();render();msg('Bola em jogo…');ac();
- const win=pick(),i=ORDER.indexOf(win);
- const D=11000,w0=wA,wf=w0+TAU*(4+Math.random()),bf=wf+i*SEG,b0=bA;
- const Bt=(((b0-bf)%TAU)+TAU)%TAU+TAU*13,t0=performance.now();let li=null,lj=null;
+let calling=false;
+function mkSpin(){const win=pick(),i=ORDER.indexOf(win),w0=wA,wf=w0+TAU*(4+Math.random()),bf=wf+i*SEG,b0=bA;return{win,w0,wf,bf,b0,Bt:(((b0-bf)%TAU)+TAU)%TAU+TAU*13,D:11000}}
+$('#spin').onclick=()=>{if(busy||calling)return;ac();const P=mkSpin();if(MP.on)MP.pub({t:'call',u:MP.name,P});else startSpin(P)};
+function startSpin(P){
+ if(busy)return;busy=true;clearWin();render();msg('Bola em jogo…'+(P.u?' (girada por <b>'+P.u+'</b>)':''));ac();
+ const win=P.win,w0=P.w0,wf=P.wf,bf=P.bf,b0=P.b0,Bt=P.Bt,D=P.D,t0=performance.now()-(P.el||0);let li=null,lj=null;MP.cur={P,t0};
  (function f(now){
   const p=Math.min(1,(now-t0)/D),ew=1-Math.pow(1-p,3),eb=1-Math.pow(1-p,2.6);
   const r=p<.75?148:148-30*Math.pow((p-.75)/.25,1.6)+(p>.9?Math.sin((p-.9)*140)*(1-p)*60:0);
@@ -306,7 +358,7 @@ function finish(n){
  let tot=0,pay=0;
  const list=Object.values(bets);
  list.forEach(b=>{tot+=b.amt;if(b.nums.includes(n))pay+=b.amt*(b.pay+1)});
- bal+=pay;last=list.map(b=>({...b}));bets={};stack=[];busy=false;
+ bal+=pay;last=list.map(b=>({...b}));bets={};stack=[];busy=false;MP.cur=null;
  document.querySelectorAll(`[data-n="${n}"]`).forEach(x=>x.classList.add('win'));
  const net=pay-tot;click(.8,1200,.14);setTimeout(()=>pay?chime():thud(),220);if(pay>tot)party(pay,tot);
  let t=`Saiu <b>${n}</b> ${CN[colr(n)]}.<br>`+(pay?`Recebeu ${pay} (${net>=0?'lucro':'prejuízo'} de ${Math.abs(net)}).`:`Nenhuma aposta ganhou (−${tot}).`);
