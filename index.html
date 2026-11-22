@@ -380,6 +380,8 @@
     const statusMsg = document.getElementById('statusMsg');
 
     let isCalibrando = false;
+    let segurandoFader = false;
+    let bloquearSyncAte = 0;
     let ultimoEnvio = 0;
     let pendente = null;
 
@@ -389,6 +391,10 @@
       clean: true,
       reconnectPeriod: 3000
     });
+
+    function pausarSyncTemporariamente(ms = 750) {
+      bloquearSyncAte = Math.max(bloquearSyncAte, Date.now() + ms);
+    }
 
     client.on('connect', () => {
       mqttStatus.textContent = "MQTT: ONLINE";
@@ -423,13 +429,20 @@
           if (d.partida_us) {
             partidaSalva.textContent = d.partida_us;
           }
+
           if (typeof d.cal === "boolean" && d.cal !== isCalibrando) {
             isCalibrando = d.cal;
             configurarEscalaFader();
           }
-          if (!isCalibrando && typeof d.pct === "number" && document.activeElement !== pctInput) {
+
+          // Só puxa a posição do fader/input a partir do MQTT se o usuário não estiver segurando
+          // e se a janela de tolerância de rede já tiver passado
+          const podeSincronizar = !segurandoFader && (pendente === null) && (Date.now() > bloquearSyncAte);
+          if (!isCalibrando && podeSincronizar && typeof d.pct === "number") {
             fader.value = d.pct;
-            pctInput.value = d.pct;
+            if (document.activeElement !== pctInput) {
+              pctInput.value = d.pct;
+            }
             pctVal.textContent = d.pct + "%";
             faderFill.style.height = d.pct + "%";
           }
@@ -483,34 +496,39 @@
       }
     }
 
-    function atualizarVisual(rawVal) {
+    function atualizarVisual(rawVal, sincronizarFader = false) {
       rawVal = parseInt(rawVal, 10) || 0;
       if (isCalibrando) {
-        pctVal.textContent = rawVal + ' µs';
-        const pctBarra = (rawVal - 1000) / 10;
+        const clamUs = Math.max(1000, Math.min(2000, rawVal));
+        pctVal.textContent = clamUs + ' µs';
+        if (sincronizarFader) fader.value = clamUs;
+        const pctBarra = (clamUs - 1000) / 10;
         faderFill.style.height = Math.max(0, Math.min(100, pctBarra)) + '%';
       } else {
-        const clamado = Math.max(0, Math.min(100, rawVal));
-        pctVal.textContent = clamado + '%';
-        fader.value = clamado;
+        const clamPct = Math.max(0, Math.min(100, rawVal));
+        pctVal.textContent = clamPct + '%';
+        if (sincronizarFader) fader.value = clamPct;
         if (document.activeElement !== pctInput) {
-          pctInput.value = clamado;
+          pctInput.value = clamPct;
         }
-        faderFill.style.height = clamado + '%';
+        faderFill.style.height = clamPct + '%';
       }
     }
 
     function enviarControle(rawVal, forcar = false) {
       rawVal = parseInt(rawVal, 10) || 0;
-      atualizarVisual(rawVal);
+      pausarSyncTemporariamente(750);
+      atualizarVisual(rawVal, false);
 
+      // Intervalo menor ao arrastar (~140 ms) evita congestionar MQTT em rede lenta
       const agora = Date.now();
-      if (!forcar && agora - ultimoEnvio < 70) {
+      if (!forcar && agora - ultimoEnvio < 140) {
         pendente = rawVal;
         return;
       }
       ultimoEnvio = agora;
       pendente = null;
+      pausarSyncTemporariamente(850);
 
       if (isCalibrando) {
         publicar(TOPIC_CMD_CAL_SET, rawVal);
@@ -521,9 +539,10 @@
 
     setInterval(() => {
       if (pendente !== null) {
+        pausarSyncTemporariamente(850);
         enviarControle(pendente, true);
       }
-    }, 80);
+    }, 150);
 
     function aplicarDigitadoPct() {
       if (isCalibrando) return;
@@ -531,10 +550,13 @@
       if (isNaN(v)) v = 0;
       v = Math.max(0, Math.min(100, v));
       pctInput.value = v;
+      fader.value = v;
       enviarControle(v, true);
     }
 
+    pctInput.addEventListener('focus', () => pausarSyncTemporariamente(1200));
     pctInput.addEventListener('keydown', (e) => {
+      pausarSyncTemporariamente(1200);
       if (e.key === 'Enter') {
         e.preventDefault();
         aplicarDigitadoPct();
@@ -544,16 +566,46 @@
     pctInput.addEventListener('change', aplicarDigitadoPct);
     btnApplyPct.addEventListener('click', aplicarDigitadoPct);
 
-    fader.addEventListener('input', (e) => enviarControle(e.target.value, false));
-    fader.addEventListener('change', (e) => enviarControle(e.target.value, true));
+    // Marca início e fim do toque/arraste no fader para não brigar com o retorno MQTT
+    const iniciarArraste = () => {
+      segurandoFader = true;
+      pausarSyncTemporariamente(1000);
+    };
+    const finalizarArraste = (e) => {
+      segurandoFader = false;
+      pausarSyncTemporariamente(850);
+      if (e && e.target) {
+        enviarControle(e.target.value, true);
+      }
+    };
+
+    fader.addEventListener('pointerdown', iniciarArraste);
+    fader.addEventListener('touchstart', iniciarArraste, { passive: true });
+    fader.addEventListener('mousedown', iniciarArraste);
+
+    fader.addEventListener('pointerup', finalizarArraste);
+    fader.addEventListener('touchend', finalizarArraste);
+    fader.addEventListener('mouseup', finalizarArraste);
+    fader.addEventListener('pointercancel', finalizarArraste);
+
+    fader.addEventListener('input', (e) => {
+      segurandoFader = true;
+      enviarControle(e.target.value, false);
+    });
+    fader.addEventListener('change', (e) => {
+      segurandoFader = false;
+      enviarControle(e.target.value, true);
+    });
 
     btnCal.addEventListener('click', () => {
+      pausarSyncTemporariamente(1000);
       isCalibrando = !isCalibrando;
       publicar(TOPIC_CMD_CAL_MODE, isCalibrando ? "1" : "0");
       configurarEscalaFader();
     });
 
     btnSave.addEventListener('click', () => {
+      pausarSyncTemporariamente(1000);
       const usAtual = parseInt(fader.value, 10) || 1200;
       publicar(TOPIC_CMD_CAL_SAVE, usAtual);
       partidaSalva.textContent = usAtual;
@@ -561,13 +613,16 @@
     });
 
     btnStop.addEventListener('click', () => {
+      segurandoFader = false;
+      pendente = null;
+      pausarSyncTemporariamente(900);
       if (isCalibrando) {
-        fader.value = 1000;
-        enviarControle(1000, true);
+        atualizarVisual(1000, true);
+        publicar(TOPIC_CMD_CAL_SET, 1000);
       } else {
         pctInput.value = 0;
-        fader.value = 0;
-        enviarControle(0, true);
+        atualizarVisual(0, true);
+        publicar(TOPIC_CMD_VEL, 0);
       }
     });
   </script>
