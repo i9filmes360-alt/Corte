@@ -381,7 +381,7 @@
 
     let isCalibrando = false;
     let segurandoFader = false;
-    let bloquearSyncAte = 0;
+    let bloquearEcoLocalAte = 0;
     let ultimoEnvio = 0;
     let pendente = null;
 
@@ -392,8 +392,68 @@
       reconnectPeriod: 3000
     });
 
-    function pausarSyncTemporariamente(ms = 750) {
-      bloquearSyncAte = Math.max(bloquearSyncAte, Date.now() + ms);
+    function pausarEcoLocal(ms = 350) {
+      bloquearEcoLocalAte = Math.max(bloquearEcoLocalAte, Date.now() + ms);
+    }
+
+    function aplicarEscalaVisual(calMode, valorInicial = null) {
+      isCalibrando = !!calMode;
+      if (isCalibrando) {
+        fader.min = 1000;
+        fader.max = 2000;
+        pctInput.disabled = true;
+        btnApplyPct.disabled = true;
+        directBox.style.opacity = '0.45';
+        scaleMarks.innerHTML = '<span>2000</span><span>1750</span><span>1500</span><span>1250</span><span>1000</span>';
+        pctVal.classList.add('cal');
+        faderFill.classList.add('cal');
+        modeBadge.textContent = 'CALIBRANDO';
+        modeBadge.classList.add('cal-on');
+        btnCal.textContent = 'SAIR CALIB.';
+        btnCal.classList.add('active');
+        btnSave.disabled = false;
+        statusMsg.textContent = 'Suba o fader até a hélice iniciar e clique em SALVAR PARTIDA.';
+        if (valorInicial !== null) {
+          atualizarVisual(valorInicial, true);
+        }
+      } else {
+        fader.min = 0;
+        fader.max = 100;
+        pctInput.disabled = false;
+        btnApplyPct.disabled = false;
+        directBox.style.opacity = '1';
+        scaleMarks.innerHTML = '<span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>';
+        pctVal.classList.remove('cal');
+        faderFill.classList.remove('cal');
+        modeBadge.textContent = 'NORMAL';
+        modeBadge.classList.remove('cal-on');
+        btnCal.textContent = 'CALIBRAR';
+        btnCal.classList.remove('active');
+        btnSave.disabled = true;
+        statusMsg.textContent = 'Sincronizado via MQTT (todos os dispositivos).';
+        if (valorInicial !== null) {
+          atualizarVisual(valorInicial, true);
+        }
+      }
+    }
+
+    function atualizarVisual(rawVal, sincronizarFader = true) {
+      rawVal = parseInt(rawVal, 10) || 0;
+      if (isCalibrando) {
+        const clamUs = Math.max(1000, Math.min(2000, rawVal));
+        pctVal.textContent = clamUs + ' µs';
+        if (sincronizarFader) fader.value = clamUs;
+        const pctBarra = (clamUs - 1000) / 10;
+        faderFill.style.height = Math.max(0, Math.min(100, pctBarra)) + '%';
+      } else {
+        const clamPct = Math.max(0, Math.min(100, rawVal));
+        pctVal.textContent = clamPct + '%';
+        if (sincronizarFader) fader.value = clamPct;
+        if (document.activeElement !== pctInput) {
+          pctInput.value = clamPct;
+        }
+        faderFill.style.height = clamPct + '%';
+      }
     }
 
     client.on('connect', () => {
@@ -421,30 +481,35 @@
         }
         return;
       }
+
       if (topic === TOPIC_STATE) {
         try {
           const d = JSON.parse(txt);
           rpmVal.textContent = d.rpm ?? 0;
           pulsoInfo.textContent = "Pulso: " + (d.pulso_us ?? 1000) + " µs";
-          if (d.partida_us) {
+
+          // Partida salva vem diretamente do ESP32 (NVS): vale para qualquer celular/PC
+          if (typeof d.partida_us === "number") {
             partidaSalva.textContent = d.partida_us;
           }
 
-          if (typeof d.cal === "boolean" && d.cal !== isCalibrando) {
-            isCalibrando = d.cal;
-            configurarEscalaFader();
+          const novoCal = !!d.cal;
+          const mudouModoCal = (novoCal !== isCalibrando);
+
+          // Enquanto este aparelho está arrastando o fader, evita puxar o próprio dedo para trás
+          const emInteracaoLocal = segurandoFader || (pendente !== null) || (Date.now() < bloquearEcoLocalAte);
+
+          if (mudouModoCal && !emInteracaoLocal) {
+            aplicarEscalaVisual(novoCal, novoCal ? (d.pulso_us ?? 1000) : (d.pct ?? 0));
+            return;
           }
 
-          // Só puxa a posição do fader/input a partir do MQTT se o usuário não estiver segurando
-          // e se a janela de tolerância de rede já tiver passado
-          const podeSincronizar = !segurandoFader && (pendente === null) && (Date.now() > bloquearSyncAte);
-          if (!isCalibrando && podeSincronizar && typeof d.pct === "number") {
-            fader.value = d.pct;
-            if (document.activeElement !== pctInput) {
-              pctInput.value = d.pct;
+          if (!emInteracaoLocal) {
+            if (isCalibrando && typeof d.pulso_us === "number") {
+              atualizarVisual(d.pulso_us, true);
+            } else if (!isCalibrando && typeof d.pct === "number") {
+              atualizarVisual(d.pct, true);
             }
-            pctVal.textContent = d.pct + "%";
-            faderFill.style.height = d.pct + "%";
           }
         } catch (_) {}
       }
@@ -456,79 +521,18 @@
       }
     }
 
-    function configurarEscalaFader() {
-      if (isCalibrando) {
-        fader.min = 1000;
-        fader.max = 2000;
-        fader.value = 1000;
-        pctInput.value = 0;
-        pctInput.disabled = true;
-        btnApplyPct.disabled = true;
-        directBox.style.opacity = '0.45';
-        scaleMarks.innerHTML = '<span>2000</span><span>1750</span><span>1500</span><span>1250</span><span>1000</span>';
-        pctVal.classList.add('cal');
-        faderFill.classList.add('cal');
-        modeBadge.textContent = 'CALIBRANDO';
-        modeBadge.classList.add('cal-on');
-        btnCal.textContent = 'SAIR CALIB.';
-        btnCal.classList.add('active');
-        btnSave.disabled = false;
-        statusMsg.textContent = 'Suba o fader até a hélice iniciar e clique em SALVAR PARTIDA.';
-        atualizarVisual(1000);
-      } else {
-        fader.min = 0;
-        fader.max = 100;
-        fader.value = 0;
-        pctInput.value = 0;
-        pctInput.disabled = false;
-        btnApplyPct.disabled = false;
-        directBox.style.opacity = '1';
-        scaleMarks.innerHTML = '<span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>';
-        pctVal.classList.remove('cal');
-        faderFill.classList.remove('cal');
-        modeBadge.textContent = 'NORMAL';
-        modeBadge.classList.remove('cal-on');
-        btnCal.textContent = 'CALIBRAR';
-        btnCal.classList.remove('active');
-        btnSave.disabled = true;
-        statusMsg.textContent = 'Modo normal: digite 0–100% ou mova o fader.';
-        atualizarVisual(0);
-      }
-    }
-
-    function atualizarVisual(rawVal, sincronizarFader = false) {
-      rawVal = parseInt(rawVal, 10) || 0;
-      if (isCalibrando) {
-        const clamUs = Math.max(1000, Math.min(2000, rawVal));
-        pctVal.textContent = clamUs + ' µs';
-        if (sincronizarFader) fader.value = clamUs;
-        const pctBarra = (clamUs - 1000) / 10;
-        faderFill.style.height = Math.max(0, Math.min(100, pctBarra)) + '%';
-      } else {
-        const clamPct = Math.max(0, Math.min(100, rawVal));
-        pctVal.textContent = clamPct + '%';
-        if (sincronizarFader) fader.value = clamPct;
-        if (document.activeElement !== pctInput) {
-          pctInput.value = clamPct;
-        }
-        faderFill.style.height = clamPct + '%';
-      }
-    }
-
     function enviarControle(rawVal, forcar = false) {
       rawVal = parseInt(rawVal, 10) || 0;
-      pausarSyncTemporariamente(750);
+      pausarEcoLocal(350);
       atualizarVisual(rawVal, false);
 
-      // Intervalo menor ao arrastar (~140 ms) evita congestionar MQTT em rede lenta
       const agora = Date.now();
-      if (!forcar && agora - ultimoEnvio < 140) {
+      if (!forcar && agora - ultimoEnvio < 110) {
         pendente = rawVal;
         return;
       }
       ultimoEnvio = agora;
       pendente = null;
-      pausarSyncTemporariamente(850);
 
       if (isCalibrando) {
         publicar(TOPIC_CMD_CAL_SET, rawVal);
@@ -539,10 +543,9 @@
 
     setInterval(() => {
       if (pendente !== null) {
-        pausarSyncTemporariamente(850);
         enviarControle(pendente, true);
       }
-    }, 150);
+    }, 120);
 
     function aplicarDigitadoPct() {
       if (isCalibrando) return;
@@ -554,9 +557,9 @@
       enviarControle(v, true);
     }
 
-    pctInput.addEventListener('focus', () => pausarSyncTemporariamente(1200));
+    pctInput.addEventListener('focus', () => pausarEcoLocal(1000));
     pctInput.addEventListener('keydown', (e) => {
-      pausarSyncTemporariamente(1200);
+      pausarEcoLocal(1000);
       if (e.key === 'Enter') {
         e.preventDefault();
         aplicarDigitadoPct();
@@ -566,14 +569,13 @@
     pctInput.addEventListener('change', aplicarDigitadoPct);
     btnApplyPct.addEventListener('click', aplicarDigitadoPct);
 
-    // Marca início e fim do toque/arraste no fader para não brigar com o retorno MQTT
     const iniciarArraste = () => {
       segurandoFader = true;
-      pausarSyncTemporariamente(1000);
+      pausarEcoLocal(400);
     };
     const finalizarArraste = (e) => {
       segurandoFader = false;
-      pausarSyncTemporariamente(850);
+      pausarEcoLocal(250);
       if (e && e.target) {
         enviarControle(e.target.value, true);
       }
@@ -598,24 +600,24 @@
     });
 
     btnCal.addEventListener('click', () => {
-      pausarSyncTemporariamente(1000);
-      isCalibrando = !isCalibrando;
-      publicar(TOPIC_CMD_CAL_MODE, isCalibrando ? "1" : "0");
-      configurarEscalaFader();
+      const proximoModo = !isCalibrando;
+      pausarEcoLocal(300);
+      aplicarEscalaVisual(proximoModo, proximoModo ? 1000 : 0);
+      publicar(TOPIC_CMD_CAL_MODE, proximoModo ? "1" : "0");
     });
 
     btnSave.addEventListener('click', () => {
-      pausarSyncTemporariamente(1000);
       const usAtual = parseInt(fader.value, 10) || 1200;
-      publicar(TOPIC_CMD_CAL_SAVE, usAtual);
+      pausarEcoLocal(300);
       partidaSalva.textContent = usAtual;
+      publicar(TOPIC_CMD_CAL_SAVE, usAtual);
       statusMsg.textContent = "Partida enviada para salvar em " + usAtual + " µs!";
     });
 
     btnStop.addEventListener('click', () => {
       segurandoFader = false;
       pendente = null;
-      pausarSyncTemporariamente(900);
+      pausarEcoLocal(250);
       if (isCalibrando) {
         atualizarVisual(1000, true);
         publicar(TOPIC_CMD_CAL_SET, 1000);
