@@ -580,10 +580,18 @@
       opacity: 0.35;
       cursor: not-allowed;
     }
+
+    /* Linha inferior dividida: Zerar/Parar + Play/Pause */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      flex-shrink: 0;
+    }
     .btn-zero {
       width: 100%;
-      padding: clamp(8px, 1.3dvh, 11px);
-      font-size: clamp(11.5px, 1.6dvh, 13px);
+      padding: clamp(8px, 1.3dvh, 11px) 6px;
+      font-size: clamp(10.5px, 1.45dvh, 12px);
       background: linear-gradient(180deg, #e0313c 0%, #9e1922 100%);
       color: #ffffff;
       border: 1px solid #ff878e;
@@ -591,11 +599,34 @@
         0 4px 0 #590b10,
         0 8px 16px rgba(200, 46, 55, 0.45),
         inset 0 1px 0 rgba(255, 255, 255, 0.32);
-      flex-shrink: 0;
     }
     .btn-zero:active {
       box-shadow: 0 1px 0 #590b10, 0 3px 7px rgba(200, 46, 55, 0.4);
     }
+    .btn-playpause {
+      width: 100%;
+      padding: clamp(8px, 1.3dvh, 11px) 6px;
+      font-size: clamp(10.5px, 1.45dvh, 12px);
+      background: linear-gradient(180deg, #2563eb 0%, #173f99 100%);
+      color: #ffffff;
+      border: 1px solid #60a5fa;
+      box-shadow:
+        0 4px 0 #0e2459,
+        0 8px 16px rgba(37, 99, 235, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    }
+    .btn-playpause:active {
+      box-shadow: 0 1px 0 #0e2459, 0 3px 7px rgba(37, 99, 235, 0.35);
+    }
+    .btn-playpause.paused {
+      background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+      border-color: #f87171;
+      box-shadow:
+        0 4px 0 #570d0d,
+        0 8px 16px rgba(220, 38, 38, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    }
+
     .status-msg {
       font-size: clamp(9px, 1.25dvh, 10.5px);
       color: #94a3b8;
@@ -613,7 +644,7 @@
     <div class="header">
       <div class="brand-group">
         <div class="brand-name">wellcon</div>
-        <div class="title">• CONTROLE</div>
+        <div class="title">A2212 • 1000KV • CONTROLE</div>
       </div>
       <div class="badge" id="modeBadge">NORMAL</div>
     </div>
@@ -690,7 +721,12 @@
       <button class="btn-cal" id="btnCal">CALIBRAR</button>
       <button class="btn-save" id="btnSave" disabled>SALVAR PARTIDA</button>
     </div>
-    <button class="btn-zero" id="btnStop">ZERAR / PARAR (0%)</button>
+
+    <div class="action-row">
+      <button class="btn-zero" id="btnStop">ZERAR / PARAR (0%)</button>
+      <button class="btn-playpause" id="btnPlayPause">PAUSE</button>
+    </div>
+
     <div class="status-msg" id="statusMsg">Conectando ao broker.emqx.io...</div>
   </div>
 
@@ -727,6 +763,7 @@
     const btnCal = document.getElementById('btnCal');
     const btnSave = document.getElementById('btnSave');
     const btnStop = document.getElementById('btnStop');
+    const btnPlayPause = document.getElementById('btnPlayPause');
     const mqttStatus = document.getElementById('mqttStatus');
     const statusMsg = document.getElementById('statusMsg');
 
@@ -736,6 +773,20 @@
     let bloquearTempInputAte = 0;
     let ultimoEnvio = 0;
     let pendente = null;
+
+    // Controle Play / Pause preservando velocidade
+    let estaPausado = false;
+    let velocidadeMemorizada = 0;
+
+    function sincronizarBotaoPlayPause() {
+      if (estaPausado) {
+        btnPlayPause.textContent = "PLAY (" + velocidadeMemorizada + "%)";
+        btnPlayPause.classList.add("paused");
+      } else {
+        btnPlayPause.textContent = "PAUSE";
+        btnPlayPause.classList.remove("paused");
+      }
+    }
 
     const clientId = "web_" + DEVICE_ID + "_" + Math.random().toString(16).slice(2, 8);
     const client = mqtt.connect(BROKER_WSS, {
@@ -751,6 +802,8 @@
     function aplicarEscalaVisual(calMode, valorInicial = null) {
       isCalibrando = !!calMode;
       if (isCalibrando) {
+        estaPausado = false;
+        sincronizarBotaoPlayPause();
         fader.min = 1000;
         fader.max = 2000;
         pctInput.disabled = true;
@@ -947,6 +1000,8 @@
       let v = parseInt(pctInput.value, 10);
       if (isNaN(v)) v = 0;
       v = Math.max(0, Math.min(100, v));
+      estaPausado = false;
+      sincronizarBotaoPlayPause();
       pctInput.value = v;
       fader.value = v;
       enviarControle(v, true);
@@ -972,6 +1027,10 @@
       segurandoFader = false;
       pausarEcoLocal(250);
       if (e && e.target) {
+        if (!isCalibrando && parseInt(e.target.value, 10) > 0) {
+          estaPausado = false;
+          sincronizarBotaoPlayPause();
+        }
         enviarControle(e.target.value, true);
       }
     };
@@ -987,10 +1046,18 @@
 
     fader.addEventListener('input', (e) => {
       segurandoFader = true;
+      if (!isCalibrando && parseInt(e.target.value, 10) > 0) {
+        estaPausado = false;
+        sincronizarBotaoPlayPause();
+      }
       enviarControle(e.target.value, false);
     });
     fader.addEventListener('change', (e) => {
       segurandoFader = false;
+      if (!isCalibrando && parseInt(e.target.value, 10) > 0) {
+        estaPausado = false;
+        sincronizarBotaoPlayPause();
+      }
       enviarControle(e.target.value, true);
     });
 
@@ -1012,6 +1079,9 @@
     btnStop.addEventListener('click', () => {
       segurandoFader = false;
       pendente = null;
+      estaPausado = false;
+      velocidadeMemorizada = 0;
+      sincronizarBotaoPlayPause();
       pausarEcoLocal(250);
       if (isCalibrando) {
         atualizarVisual(1000, true);
@@ -1020,6 +1090,37 @@
         pctInput.value = 0;
         atualizarVisual(0, true);
         publicar(TOPIC_CMD_VEL, 0);
+        statusMsg.textContent = "Zerado (0%).";
+      }
+    });
+
+    btnPlayPause.addEventListener('click', () => {
+      if (isCalibrando) return;
+      segurandoFader = false;
+      pendente = null;
+      pausarEcoLocal(350);
+
+      if (!estaPausado) {
+        const atual = Math.max(0, Math.min(100, parseInt(fader.value, 10) || parseInt(pctInput.value, 10) || 0));
+        if (atual === 0) {
+          statusMsg.textContent = "Velocidade já está em 0% para pausar.";
+          return;
+        }
+        velocidadeMemorizada = atual;
+        estaPausado = true;
+        sincronizarBotaoPlayPause();
+        pctInput.value = 0;
+        atualizarVisual(0, true);
+        publicar(TOPIC_CMD_VEL, 0);
+        statusMsg.textContent = "Pausado (0%). Velocidade salva: " + velocidadeMemorizada + "%.";
+      } else {
+        const alvoRetorno = velocidadeMemorizada > 0 ? velocidadeMemorizada : 0;
+        estaPausado = false;
+        sincronizarBotaoPlayPause();
+        pctInput.value = alvoRetorno;
+        atualizarVisual(alvoRetorno, true);
+        publicar(TOPIC_CMD_VEL, alvoRetorno);
+        statusMsg.textContent = "Retomado em " + alvoRetorno + "%.";
       }
     });
   </script>
