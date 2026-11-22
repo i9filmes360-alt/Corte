@@ -2,295 +2,476 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>ESC A2212 + DS18B20 MQTT • dengue_bpa6tfor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Wellcon • ESC A2212 MQTT • dengue_bpa6tfor</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #050505;
-      color: #e2e8f0;
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      background: radial-gradient(circle at 50% 20%, #10192b 0%, #050505 75%);
+      color: #f8fafc;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 12px;
+      padding: clamp(6px, 1.5dvh, 12px);
     }
+
+    /* Chassi 3D Responsivo para caber em tela única sem rolagem */
     .console {
       width: 100%;
-      max-width: 395px;
-      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-      border: 1px solid #334155;
-      border-radius: 18px;
-      padding: 15px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+      max-width: 400px;
+      max-height: calc(100dvh - clamp(12px, 3dvh, 24px));
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: clamp(5px, 1dvh, 9px);
+      background: linear-gradient(160deg, #1a2740 0%, #0e1626 48%, #080d17 100%);
+      border: 1px solid #2b4570;
+      border-top-color: #466ba6;
+      border-left-color: #36568a;
+      border-radius: 20px;
+      padding: clamp(9px, 1.5dvh, 13px);
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.92),
+        0 5px 0 #04070d,
+        inset 0 1px 1px rgba(255, 255, 255, 0.16),
+        inset 0 -3px 8px rgba(0, 0, 0, 0.75);
+      overflow: hidden;
     }
+
+    /* Cabeçalho */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #334155;
+      padding: clamp(5px, 0.8dvh, 8px) 10px;
+      border-radius: 11px;
+      background: linear-gradient(180deg, #16233b 0%, #0c1424 100%);
+      border: 1px solid #233d63;
+      box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      flex-shrink: 0;
+    }
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-name {
+      font-size: clamp(15px, 2.3dvh, 17px);
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      color: #e63946;
+      text-shadow: 0 2px 6px rgba(230, 57, 70, 0.45);
+      line-height: 1.05;
     }
     .title {
-      font-size: 13px;
+      font-size: clamp(8.5px, 1.2dvh, 9.5px);
       font-weight: 700;
       letter-spacing: 0.7px;
       text-transform: uppercase;
-      color: #f8fafc;
+      color: #cbd5e1;
+      margin-top: 1px;
     }
     .badge {
-      font-size: 11px;
-      padding: 3px 8px;
+      font-size: clamp(9px, 1.3dvh, 10px);
+      padding: 4px 9px;
       border-radius: 999px;
-      background: rgba(1, 101, 254, 0.2);
-      color: #60a5fa;
-      border: 1px solid rgba(1, 101, 254, 0.5);
-      font-weight: 600;
+      background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border: 1px solid #60a5fa;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow:
+        0 3px 8px rgba(29, 78, 216, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
     }
     .badge.cal-on {
-      background: rgba(245, 158, 11, 0.22);
-      color: #fbbf24;
-      border-color: rgba(245, 158, 11, 0.6);
+      background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+      border-color: #f87171;
+      box-shadow:
+        0 3px 10px rgba(220, 38, 38, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
     }
+
+    /* Barra MQTT */
     .mqtt-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 11px;
+      font-size: clamp(9.5px, 1.35dvh, 10.5px);
       font-family: monospace;
-      background: rgba(5, 5, 5, 0.65);
-      border: 1px solid #334155;
+      background: #04070d;
+      border: 1px solid #1e3252;
+      border-bottom-color: #2f4d7a;
       border-radius: 8px;
-      padding: 6px 10px;
-      margin-bottom: 10px;
+      padding: clamp(4px, 0.65dvh, 6px) 9px;
+      color: #cbd5e1;
+      box-shadow:
+        inset 0 3px 7px rgba(0, 0, 0, 0.9),
+        0 1px 0 rgba(255, 255, 255, 0.06);
+      flex-shrink: 0;
     }
-    .conn-ok { color: #34d399; font-weight: 700; }
-    .conn-off { color: #f87171; font-weight: 700; }
+    .conn-ok {
+      color: #38bdf8;
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+    }
+    .conn-off {
+      color: #f87171;
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(248, 113, 113, 0.45);
+    }
 
+    /* Displays Digitais 3D embutidos */
     .metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .bezel-3d {
+      background: linear-gradient(145deg, #0b1220, #192842);
+      padding: 3px;
+      border-radius: 13px;
+      border: 1px solid #2c4875;
+      box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.75),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
     .rpm-display, .temp-display {
-      background: #050505;
-      border: 2px solid #0165FE;
-      border-radius: 12px;
-      padding: 10px 8px;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 35%, #0a1628 0%, #03060c 90%);
+      border: 1.5px solid #1e3a63;
+      border-radius: 10px;
+      padding: clamp(6px, 1dvh, 9px) 6px;
       text-align: center;
-      box-shadow: inset 0 0 14px rgba(1, 101, 254, 0.2);
+      box-shadow:
+        inset 0 5px 12px rgba(0, 0, 0, 0.95),
+        inset 0 -2px 6px rgba(37, 99, 235, 0.25);
+    }
+    .rpm-display::before, .temp-display::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 45%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
+      pointer-events: none;
     }
     .temp-display.alert {
-      border-color: #ef4444;
-      box-shadow: inset 0 0 16px rgba(239, 68, 68, 0.35);
+      background: radial-gradient(circle at 50% 35%, #2a0a10 0%, #090305 90%);
+      border-color: #dc2626;
+      box-shadow:
+        inset 0 5px 12px rgba(0, 0, 0, 0.95),
+        inset 0 0 14px rgba(220, 38, 38, 0.45);
     }
     .rpm-label {
-      font-size: 9.5px;
+      font-size: clamp(8.5px, 1.2dvh, 9.5px);
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.9px;
       color: #94a3b8;
     }
     .rpm-value {
       font-family: 'Courier New', monospace;
-      font-size: 28px;
-      font-weight: 800;
-      color: #38bdf8;
-      line-height: 1.15;
+      font-size: clamp(22px, 3.5dvh, 28px);
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow:
+        0 0 10px rgba(59, 130, 246, 0.75),
+        0 2px 3px rgba(0, 0, 0, 0.95);
+      line-height: 1.1;
       margin-top: 2px;
     }
     .temp-value {
       font-family: 'Courier New', monospace;
-      font-size: 28px;
-      font-weight: 800;
-      color: #34d399;
-      line-height: 1.15;
+      font-size: clamp(22px, 3.5dvh, 28px);
+      font-weight: 900;
+      color: #60a5fa;
+      text-shadow:
+        0 0 12px rgba(96, 165, 250, 0.75),
+        0 2px 3px rgba(0, 0, 0, 0.95);
+      line-height: 1.1;
       margin-top: 2px;
     }
     .temp-display.alert .temp-value {
-      color: #f87171;
+      color: #ff5c67;
+      text-shadow:
+        0 0 14px rgba(239, 68, 68, 0.9),
+        0 2px 3px rgba(0, 0, 0, 0.95);
     }
     .sub-readout {
-      font-size: 10px;
+      font-size: clamp(8.5px, 1.2dvh, 9.5px);
       font-family: monospace;
       color: #94a3b8;
-      margin-top: 3px;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    /* Módulo de Corte Térmico com LED Virtual 3D */
     .temp-ctrl-box {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid #334155;
+      background: linear-gradient(180deg, #132038 0%, #0b1322 100%);
+      border: 1px solid #264069;
+      border-top-color: #3a5f99;
       border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 10px;
+      padding: clamp(6px, 0.9dvh, 9px) 9px;
+      box-shadow:
+        0 5px 12px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
     }
     .temp-ctrl-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 11px;
-      margin-bottom: 8px;
-      color: #cbd5e1;
-    }
-    .relay-pill {
-      font-family: monospace;
-      font-size: 10px;
+      font-size: clamp(10px, 1.4dvh, 11px);
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(100, 116, 139, 0.2);
-      color: #cbd5e1;
-      border: 1px solid #475569;
+      margin-bottom: clamp(4px, 0.7dvh, 6px);
+      color: #e2e8f0;
+      gap: 8px;
     }
-    .relay-pill.low {
-      background: rgba(239, 68, 68, 0.22);
-      color: #fca5a5;
-      border-color: #ef4444;
+    .led-housing {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #070d17, #253d63);
+      border: 1px solid #35578c;
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.9),
+        0 2px 5px rgba(0, 0, 0, 0.65);
+      flex-shrink: 0;
     }
+    .virtual-led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #334155 0%, #0f172a 70%, #05080f 100%);
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15);
+      transition: all 0.2s ease;
+    }
+    .virtual-led.on {
+      background: radial-gradient(circle at 35% 30%, #ffb3b8 0%, #ef4444 45%, #991b1b 90%);
+      border-color: #fca5a5;
+      box-shadow:
+        0 0 8px #ef4444,
+        0 0 16px rgba(239, 68, 68, 0.85),
+        inset 0 1px 2px rgba(255, 255, 255, 0.65);
+    }
+
     .temp-input-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 7px;
     }
     .temp-input-wrap {
       display: flex;
       align-items: center;
       gap: 4px;
-      background: #050505;
-      border: 1px solid #334155;
+      background: #04070d;
+      border: 1px solid #1e3252;
+      border-bottom-color: #34568a;
       border-radius: 8px;
-      padding: 4px 8px;
+      padding: 3px 8px;
       flex: 1;
+      box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.92);
     }
     .temp-input-wrap input[type="number"] {
       width: 100%;
       background: transparent;
       border: none;
-      color: #f8fafc;
+      color: #ffffff;
       font-family: 'Courier New', monospace;
-      font-size: 16px;
+      font-size: clamp(14px, 2dvh, 16px);
+      font-weight: 800;
+      text-align: center;
+      outline: none;
+      text-shadow: 0 0 6px rgba(96, 165, 250, 0.45);
+    }
+    .temp-input-wrap span {
+      font-family: monospace;
+      font-size: 11.5px;
+      color: #94a3b8;
       font-weight: 700;
+    }
+
+    /* Faixa Partida Calibrada */
+    .cal-info {
+      font-size: clamp(10px, 1.35dvh, 11px);
+      color: #e2e8f0;
+      text-align: center;
+      background: #04070d;
+      border: 1px solid #1e3252;
+      border-bottom-color: #2f4d7a;
+      border-radius: 8px;
+      padding: clamp(4px, 0.65dvh, 6px) 9px;
+      font-family: monospace;
+      box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9);
+      flex-shrink: 0;
+    }
+    .cal-info strong {
+      color: #60a5fa;
+      text-shadow: 0 0 6px rgba(96, 165, 250, 0.5);
+    }
+
+    /* Mesa Mixer 3D Flexível */
+    .mixer-area {
+      flex: 1;
+      min-height: 118px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, #132038 0%, #09101d 100%);
+      border: 1px solid #264069;
+      border-top-color: #3b6099;
+      border-radius: 14px;
+      padding: clamp(6px, 1dvh, 10px);
+      box-shadow:
+        0 7px 16px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .top-readout-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .pct-readout {
+      font-family: 'Courier New', monospace;
+      font-size: clamp(15px, 2.3dvh, 18px);
+      font-weight: 900;
+      color: #ffffff;
+      background: radial-gradient(circle at 50% 30%, #163059 0%, #060d1a 90%);
+      border: 1.5px solid #3b82f6;
+      padding: 3px 11px;
+      border-radius: 8px;
+      text-shadow: 0 0 10px rgba(96, 165, 250, 0.8);
+      box-shadow:
+        inset 0 3px 7px rgba(0, 0, 0, 0.85),
+        0 3px 8px rgba(0, 0, 0, 0.5);
+    }
+    .pct-readout.cal {
+      background: radial-gradient(circle at 50% 30%, #5c141b 0%, #1a0508 90%);
+      border-color: #f87171;
+      text-shadow: 0 0 10px rgba(248, 113, 113, 0.85);
+    }
+    .direct-input-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #04070d;
+      border: 1px solid #1e3252;
+      border-bottom-color: #34568a;
+      border-radius: 8px;
+      padding: 2px 6px;
+      box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.92);
+    }
+    .direct-input-group input[type="number"] {
+      width: 50px;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-family: 'Courier New', monospace;
+      font-size: clamp(13px, 1.9dvh, 15px);
+      font-weight: 800;
       text-align: center;
       outline: none;
     }
-    .temp-input-wrap span {
+    .direct-input-group span {
       font-family: monospace;
       font-size: 12px;
       color: #94a3b8;
       font-weight: 700;
     }
 
-    .cal-info {
-      font-size: 11px;
-      color: #cbd5e1;
-      text-align: center;
-      background: rgba(5, 5, 5, 0.65);
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 6px 10px;
-      margin-bottom: 10px;
-      font-family: monospace;
-    }
-    .mixer-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.75);
-      border: 1px solid #1e293b;
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    .top-readout-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .pct-readout {
-      font-family: 'Courier New', monospace;
-      font-size: 19px;
-      font-weight: 700;
-      color: #ffffff;
-      background: #0165FE;
-      padding: 4px 12px;
-      border-radius: 8px;
-    }
-    .pct-readout.cal {
-      background: #d97706;
-    }
-    .direct-input-group {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: #050505;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 3px 6px;
-    }
-    .direct-input-group input[type="number"] {
-      width: 56px;
-      background: transparent;
+    /* Botões táteis 3D */
+    button {
       border: none;
-      color: #f8fafc;
-      font-family: 'Courier New', monospace;
-      font-size: 15px;
-      font-weight: 700;
-      text-align: center;
-      outline: none;
+      border-radius: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
     }
-    .direct-input-group span {
-      font-family: monospace;
-      font-size: 13px;
-      color: #94a3b8;
-      font-weight: 700;
+    button:active:not(:disabled) {
+      transform: translateY(2px);
     }
     .btn-go {
-      padding: 6px 10px;
-      font-size: 12px;
-      background: #0284c7;
+      padding: 5px 10px;
+      font-size: clamp(10.5px, 1.5dvh, 11.5px);
+      background: linear-gradient(180deg, #2563eb 0%, #173f99 100%);
       color: #ffffff;
+      border: 1px solid #60a5fa;
       border-radius: 7px;
+      box-shadow:
+        0 3px 0 #0e2459,
+        0 5px 10px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+    .btn-go:active:not(:disabled) {
+      box-shadow: 0 1px 0 #0e2459, 0 2px 5px rgba(0, 0, 0, 0.5);
     }
     .btn-go:disabled {
       opacity: 0.35;
       cursor: not-allowed;
     }
+
+    /* Trilho 3D cavado + Knob metálico com ranhura central */
     .fader-wrapper {
+      --fader-len: clamp(92px, 17dvh, 155px);
       position: relative;
-      width: 96px;
-      height: 195px;
+      width: 112px;
+      height: calc(var(--fader-len) + 16px);
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-shrink: 0;
     }
     .scale-marks {
       position: absolute;
-      left: 6px;
-      top: 8px;
-      bottom: 8px;
+      left: 4px;
+      top: 6px;
+      bottom: 6px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      font-size: 10px;
+      font-size: clamp(8.5px, 1.2dvh, 10px);
       font-family: monospace;
-      color: #64748b;
+      color: #94a3b8;
+      font-weight: 700;
       pointer-events: none;
     }
     .fader-track {
       position: relative;
-      width: 14px;
-      height: 175px;
-      background: #050505;
-      border: 1px solid #334155;
+      width: 16px;
+      height: var(--fader-len);
+      background: #03050a;
+      border: 1.5px solid #284470;
       border-radius: 999px;
       overflow: hidden;
+      box-shadow:
+        inset 0 4px 10px rgba(0, 0, 0, 0.98),
+        0 1px 0 rgba(255, 255, 255, 0.1);
     }
     .fader-fill {
       position: absolute;
@@ -298,18 +479,20 @@
       left: 0;
       width: 100%;
       height: 0%;
-      background: linear-gradient(180deg, #38bdf8 0%, #0165FE 100%);
+      background: linear-gradient(180deg, #60a5fa 0%, #2563eb 55%, #173266 100%);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.75);
       transition: height 0.04s linear;
     }
     .fader-fill.cal {
-      background: linear-gradient(180deg, #fcd34d 0%, #d97706 100%);
+      background: linear-gradient(180deg, #ff757e 0%, #dc2626 55%, #7f1d1d 100%);
+      box-shadow: 0 0 12px rgba(220, 38, 38, 0.8);
     }
     input[type="range"].vertical-fader {
       -webkit-appearance: none;
       appearance: none;
       position: absolute;
-      width: 175px;
-      height: 54px;
+      width: var(--fader-len);
+      height: 56px;
       background: transparent;
       transform: rotate(-90deg);
       cursor: pointer;
@@ -320,77 +503,118 @@
       appearance: none;
       width: 54px;
       height: 30px;
-      border-radius: 6px;
-      background: linear-gradient(180deg, #f8fafc 0%, #cbd5e1 48%, #64748b 52%, #e2e8f0 100%);
-      border: 2px solid #0f172a;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.7), inset 0 1px 0 #ffffff;
+      border-radius: 7px;
+      background: linear-gradient(180deg,
+        #ffffff 0%,
+        #dbe4f0 42%,
+        #1e3252 47%,
+        #c82e37 50%,
+        #1e3252 53%,
+        #cbd5e1 58%,
+        #f8fafc 100%);
+      border: 1.5px solid #0f172a;
+      box-shadow:
+        0 8px 16px rgba(0, 0, 0, 0.88),
+        0 2px 0 #475569,
+        inset 0 1px 1px #ffffff;
     }
     input[type="range"].vertical-fader::-moz-range-thumb {
       width: 54px;
       height: 30px;
-      border-radius: 6px;
-      background: linear-gradient(180deg, #f8fafc 0%, #cbd5e1 48%, #64748b 52%, #e2e8f0 100%);
-      border: 2px solid #0f172a;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.7);
+      border-radius: 7px;
+      background: linear-gradient(180deg,
+        #ffffff 0%,
+        #dbe4f0 42%,
+        #1e3252 47%,
+        #c82e37 50%,
+        #1e3252 53%,
+        #cbd5e1 58%,
+        #f8fafc 100%);
+      border: 1.5px solid #0f172a;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.88);
     }
+
     .btn-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-bottom: 8px;
-    }
-    button {
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      cursor: pointer;
-      letter-spacing: 0.4px;
+      flex-shrink: 0;
     }
     .btn-cal {
-      padding: 10px 8px;
-      font-size: 12px;
-      background: #2563eb;
+      padding: clamp(7px, 1.15dvh, 10px) 8px;
+      font-size: clamp(10.5px, 1.45dvh, 11.5px);
+      background: linear-gradient(180deg, #274472 0%, #172a47 100%);
       color: #ffffff;
+      border: 1px solid #4a74b8;
+      box-shadow:
+        0 3px 0 #0c1729,
+        0 5px 10px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+    .btn-cal:active {
+      box-shadow: 0 1px 0 #0c1729, 0 2px 5px rgba(0, 0, 0, 0.6);
     }
     .btn-cal.active {
-      background: #d97706;
-      color: #050505;
+      background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+      border-color: #f87171;
+      box-shadow:
+        0 3px 0 #570d0d,
+        0 5px 12px rgba(220, 38, 38, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
     }
     .btn-save {
-      padding: 10px 8px;
-      font-size: 12px;
-      background: #059669;
+      padding: clamp(7px, 1.15dvh, 10px) 8px;
+      font-size: clamp(10.5px, 1.45dvh, 11.5px);
+      background: linear-gradient(180deg, #2563eb 0%, #163b8c 100%);
       color: #ffffff;
+      border: 1px solid #60a5fa;
+      box-shadow:
+        0 3px 0 #0c2152,
+        0 5px 10px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+    .btn-save:active:not(:disabled) {
+      box-shadow: 0 1px 0 #0c2152, 0 2px 5px rgba(0, 0, 0, 0.6);
     }
     .btn-save:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: not-allowed;
     }
     .btn-zero {
       width: 100%;
-      padding: 11px;
-      font-size: 13px;
-      background: #dc2626;
+      padding: clamp(8px, 1.3dvh, 11px);
+      font-size: clamp(11.5px, 1.6dvh, 13px);
+      background: linear-gradient(180deg, #e0313c 0%, #9e1922 100%);
       color: #ffffff;
-      box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35);
+      border: 1px solid #ff878e;
+      box-shadow:
+        0 4px 0 #590b10,
+        0 8px 16px rgba(200, 46, 55, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      flex-shrink: 0;
     }
     .btn-zero:active {
-      background: #991b1b;
+      box-shadow: 0 1px 0 #590b10, 0 3px 7px rgba(200, 46, 55, 0.4);
     }
     .status-msg {
-      margin-top: 8px;
-      font-size: 11px;
+      font-size: clamp(9px, 1.25dvh, 10.5px);
       color: #94a3b8;
       text-align: center;
-      min-height: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 14px;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <div class="console">
     <div class="header">
-      <div class="title">A2212 • 1000KV • DS18B20</div>
+      <div class="brand-group">
+        <div class="brand-name">wellcon</div>
+        <div class="title">• CONTROLE</div>
+      </div>
       <div class="badge" id="modeBadge">NORMAL</div>
     </div>
 
@@ -400,23 +624,29 @@
     </div>
 
     <div class="metrics-grid">
-      <div class="rpm-display">
-        <div class="rpm-label">RPM Média (20cm)</div>
-        <div class="rpm-value" id="rpmVal">0</div>
-        <div class="sub-readout" id="pulsoInfo">1000 µs</div>
+      <div class="bezel-3d">
+        <div class="rpm-display">
+          <div class="rpm-label">RPM</div>
+          <div class="rpm-value" id="rpmVal">0</div>
+          <div class="sub-readout" id="pulsoInfo">1000 µs</div>
+        </div>
       </div>
 
-      <div class="temp-display" id="tempCard">
-        <div class="rpm-label">Temperatura DS18B20</div>
-        <div class="temp-value" id="tempVal">--.-°C</div>
-        <div class="sub-readout" id="alvoInfo">Alvo: 40.0°C (+0.5°C)</div>
+      <div class="bezel-3d">
+        <div class="temp-display" id="tempCard">
+          <div class="rpm-label">Temperatura</div>
+          <div class="temp-value" id="tempVal">--.-°C</div>
+          <div class="sub-readout" id="alvoInfo">Alvo: 40.0°C (+0.5°C)</div>
+        </div>
       </div>
     </div>
 
     <div class="temp-ctrl-box">
       <div class="temp-ctrl-top">
-        <span>Corte Térmico (+0,5°C &rarr; GPIO27 LOW)</span>
-        <span class="relay-pill" id="relayPill">GPIO27: HIGH</span>
+        <span>Corte Térmico (+0,5°C)</span>
+        <span class="led-housing" title="Estado da saída térmica">
+          <span class="virtual-led" id="relayLed"></span>
+        </span>
       </div>
       <div class="temp-input-row">
         <div class="temp-input-wrap">
@@ -488,7 +718,7 @@
     const tempCard = document.getElementById('tempCard');
     const tempVal = document.getElementById('tempVal');
     const alvoInfo = document.getElementById('alvoInfo');
-    const relayPill = document.getElementById('relayPill');
+    const relayLed = document.getElementById('relayLed');
     const tempAlvoInput = document.getElementById('tempAlvoInput');
     const btnApplyTemp = document.getElementById('btnApplyTemp');
     const partidaSalva = document.getElementById('partidaSalva');
@@ -626,12 +856,10 @@
 
           const isLow = !!d.rele_low;
           if (isLow) {
-            relayPill.textContent = "GPIO27: LOW (ON)";
-            relayPill.classList.add("low");
+            relayLed.classList.add("on");
             tempCard.classList.add("alert");
           } else {
-            relayPill.textContent = "GPIO27: HIGH (OFF)";
-            relayPill.classList.remove("low");
+            relayLed.classList.remove("on");
             tempCard.classList.remove("alert");
           }
 
