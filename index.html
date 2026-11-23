@@ -23,7 +23,6 @@
       padding: clamp(6px, 1.5dvh, 12px);
     }
 
-    /* Chassi 3D Responsivo para caber em tela única sem rolagem */
     .console {
       width: 100%;
       max-width: 400px;
@@ -46,7 +45,6 @@
       overflow: hidden;
     }
 
-    /* Cabeçalho */
     .header {
       display: flex;
       justify-content: space-between;
@@ -101,7 +99,6 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.35);
     }
 
-    /* Barra MQTT */
     .mqtt-bar {
       display: flex;
       justify-content: space-between;
@@ -130,7 +127,6 @@
       text-shadow: 0 0 8px rgba(248, 113, 113, 0.45);
     }
 
-    /* Displays Digitais 3D embutidos */
     .metrics-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -168,13 +164,6 @@
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
       pointer-events: none;
     }
-    .temp-display.alert {
-      background: radial-gradient(circle at 50% 35%, #2a0a10 0%, #090305 90%);
-      border-color: #dc2626;
-      box-shadow:
-        inset 0 5px 12px rgba(0, 0, 0, 0.95),
-        inset 0 0 14px rgba(220, 38, 38, 0.45);
-    }
     .rpm-label {
       font-size: clamp(8.5px, 1.2dvh, 9.5px);
       font-weight: 800;
@@ -204,12 +193,6 @@
       line-height: 1.1;
       margin-top: 2px;
     }
-    .temp-display.alert .temp-value {
-      color: #ff5c67;
-      text-shadow:
-        0 0 14px rgba(239, 68, 68, 0.9),
-        0 2px 3px rgba(0, 0, 0, 0.95);
-    }
     .sub-readout {
       font-size: clamp(8.5px, 1.2dvh, 9.5px);
       font-family: monospace;
@@ -220,7 +203,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Módulo de Corte Térmico com LED Virtual 3D */
     .temp-ctrl-box {
       background: linear-gradient(180deg, #132038 0%, #0b1322 100%);
       border: 1px solid #264069;
@@ -256,17 +238,18 @@
         0 2px 5px rgba(0, 0, 0, 0.65);
       flex-shrink: 0;
     }
+    /* LED vermelho: apagado por padrão; acende quando saída está em ALTO (HIGH) */
     .virtual-led {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #334155 0%, #0f172a 70%, #05080f 100%);
+      background: radial-gradient(circle at 35% 30%, #1e293b 0%, #0b111e 75%, #03050a 100%);
       border: 1px solid #1e293b;
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9);
       transition: all 0.2s ease;
     }
     .virtual-led.on {
-      background: radial-gradient(circle at 35% 30%, #ffb3b8 0%, #ef4444 45%, #991b1b 90%);
+      background: radial-gradient(circle at 35% 30%, #fecaca 0%, #ef4444 45%, #991b1b 95%);
       border-color: #fca5a5;
       box-shadow:
         0 0 8px #ef4444,
@@ -278,27 +261,41 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 7px;
+      gap: 6px;
+    }
+    .temp-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+    }
+    .temp-mini-label {
+      font-size: 8.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #94a3b8;
+      padding-left: 2px;
     }
     .temp-input-wrap {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       background: #04070d;
       border: 1px solid #1e3252;
       border-bottom-color: #34568a;
       border-radius: 8px;
-      padding: 3px 8px;
-      flex: 1;
+      padding: 3px 6px;
       box-shadow: inset 0 3px 7px rgba(0, 0, 0, 0.92);
     }
     .temp-input-wrap input[type="number"] {
       width: 100%;
+      min-width: 0;
       background: transparent;
       border: none;
       color: #ffffff;
       font-family: 'Courier New', monospace;
-      font-size: clamp(14px, 2dvh, 16px);
+      font-size: clamp(13px, 1.9dvh, 15px);
       font-weight: 800;
       text-align: center;
       outline: none;
@@ -306,12 +303,16 @@
     }
     .temp-input-wrap span {
       font-family: monospace;
-      font-size: 11.5px;
+      font-size: 11px;
       color: #94a3b8;
       font-weight: 700;
     }
+    .btn-save-temp {
+      align-self: flex-end;
+      padding: 6px 9px;
+      height: 30px;
+    }
 
-    /* Faixa Partida Calibrada */
     .cal-info {
       font-size: clamp(10px, 1.35dvh, 11px);
       color: #e2e8f0;
@@ -330,10 +331,9 @@
       text-shadow: 0 0 6px rgba(96, 165, 250, 0.5);
     }
 
-    /* Mesa Mixer 3D Flexível */
     .mixer-area {
       flex: 1;
-      min-height: 118px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -403,7 +403,6 @@
       font-weight: 700;
     }
 
-    /* Botões táteis 3D */
     button {
       border: none;
       border-radius: 10px;
@@ -436,9 +435,8 @@
       cursor: not-allowed;
     }
 
-    /* Trilho 3D cavado + Knob metálico com ranhura central */
     .fader-wrapper {
-      --fader-len: clamp(92px, 17dvh, 155px);
+      --fader-len: clamp(130px, 27dvh, 260px);
       position: relative;
       width: 112px;
       height: calc(var(--fader-len) + 16px);
@@ -581,7 +579,6 @@
       cursor: not-allowed;
     }
 
-    /* Linha inferior dividida: Zerar/Parar + Play/Pause */
     .action-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -637,6 +634,216 @@
       min-height: 14px;
       flex-shrink: 0;
     }
+
+    /* ===== Engrenagem / janela de configurações ===== */
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .badge.clickable { cursor: pointer; }
+    .btn-gear {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #274472 0%, #172a47 100%);
+      border: 1px solid #4a74b8;
+      color: #e2e8f0;
+      box-shadow:
+        0 3px 0 #0c1729,
+        0 5px 10px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+    .btn-gear:active { box-shadow: 0 1px 0 #0c1729, 0 2px 5px rgba(0, 0, 0, 0.6); }
+    .btn-gear svg { width: 18px; height: 18px; transition: transform 0.35s ease; }
+    .btn-gear:hover svg { transform: rotate(60deg); }
+    .btn-gear:focus-visible, .btn-close:focus-visible { outline: 2px solid #60a5fa; outline-offset: 2px; }
+
+    .led-corner {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 18px;
+      height: 18px;
+      z-index: 2;
+    }
+    .led-corner .virtual-led { width: 10px; height: 10px; }
+
+    /* LED amarelo do Ciclo de Gás (painel principal) */
+    .gas-ind {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+    .gas-ind .led-housing { width: 18px; height: 18px; }
+    .gas-ind .virtual-led { width: 10px; height: 10px; }
+    .virtual-led.yellow.on {
+      background: radial-gradient(circle at 35% 30%, #fef9c3 0%, #facc15 45%, #a16207 95%);
+      border-color: #fde68a;
+      box-shadow:
+        0 0 8px #facc15,
+        0 0 16px rgba(250, 204, 21, 0.85),
+        inset 0 1px 2px rgba(255, 255, 255, 0.65);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: rgba(2, 6, 14, 0.78);
+      backdrop-filter: blur(3px);
+      z-index: 50;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 100%;
+      max-width: 400px;
+      max-height: calc(100dvh - 24px);
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(160deg, #1a2740 0%, #0e1626 48%, #080d17 100%);
+      border: 1px solid #2b4570;
+      border-top-color: #466ba6;
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.16);
+      overflow: hidden;
+      animation: modalIn 0.18s ease-out;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to   { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .modal { animation: none; } .btn-gear svg { transition: none; } }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, #16233b 0%, #0c1424 100%);
+      border-bottom: 1px solid #233d63;
+      flex-shrink: 0;
+    }
+    .modal-title { font-size: 15px; font-weight: 800; color: #f8fafc; letter-spacing: 0.3px; }
+    .btn-close {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      font-size: 14px;
+      background: #0b1322;
+      color: #cbd5e1;
+      border: 1px solid #2c4875;
+      border-radius: 50%;
+    }
+    .modal-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+    .set-card {
+      background: linear-gradient(180deg, #132038 0%, #0b1322 100%);
+      border: 1px solid #264069;
+      border-top-color: #3a5f99;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .set-title { font-size: 12px; font-weight: 800; color: #e2e8f0; }
+    .cal-slider-row { display: flex; align-items: center; gap: 10px; }
+    .cal-us {
+      min-width: 72px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: 900;
+      color: #ffffff;
+      background: #04070d;
+      border: 1px solid #1e3252;
+      border-radius: 8px;
+      padding: 4px 6px;
+      box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9);
+    }
+    input[type="range"].cal-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 28px;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"].cal-slider::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 999px;
+      background: #03050a;
+      border: 1px solid #284470;
+    }
+    input[type="range"].cal-slider::-moz-range-track {
+      height: 8px;
+      border-radius: 999px;
+      background: #03050a;
+      border: 1px solid #284470;
+    }
+    input[type="range"].cal-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      margin-top: -10px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ff757e 0%, #dc2626 60%, #7f1d1d 100%);
+      border: 1.5px solid #fecaca;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8);
+    }
+    input[type="range"].cal-slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ff757e 0%, #dc2626 60%, #7f1d1d 100%);
+      border: 1.5px solid #fecaca;
+    }
+    input[type="range"].cal-slider:disabled { opacity: 0.35; cursor: not-allowed; }
+    input[type="range"].vertical-fader:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ciclo-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #cbd5e1;
+    }
+    .ciclo-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.9);
+      transition: all 0.15s ease;
+    }
+    .ciclo-dot.on {
+      background: radial-gradient(circle at 35% 30%, #bae6fd 0%, #38bdf8 50%, #0369a1 95%);
+      border-color: #bae6fd;
+      box-shadow: 0 0 8px #38bdf8, 0 0 14px rgba(56, 189, 248, 0.7);
+    }
+    .cal-hint { font-size: 10.5px; color: #94a3b8; line-height: 1.35; }
+    .modal-msg {
+      min-height: 26px;
+      padding: 6px 12px 10px;
+      font-size: 10.5px;
+      color: #94a3b8;
+      text-align: center;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -644,13 +851,25 @@
     <div class="header">
       <div class="brand-group">
         <div class="brand-name">wellcon</div>
-        <div class="title">A2212 • 1000KV • CONTROLE</div>
+        <div class="title">CONTROLE</div>
       </div>
-      <div class="badge" id="modeBadge">NORMAL</div>
+      <div class="header-right">
+        <div class="badge" id="modeBadge">NORMAL</div>
+        <button type="button" class="btn-gear" id="btnOpenSettings" aria-label="Abrir configurações" title="Configurações">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="mqtt-bar">
       <span>ID: <strong>dengue_bpa6tfor</strong></span>
+      <span class="gas-ind" title="Ciclo de Gás: aceso quando ligado">
+        <span>GÁS</span>
+        <span class="led-housing"><span class="virtual-led yellow" id="gasLed"></span></span>
+      </span>
       <span id="mqttStatus" class="conn-off">MQTT: DESCONECTADO</span>
     </div>
 
@@ -665,31 +884,14 @@
 
       <div class="bezel-3d">
         <div class="temp-display" id="tempCard">
+          <span class="led-housing led-corner" title="LED: aceso em ALTO, apaga ao passar do limite">
+            <span class="virtual-led on" id="relayLed"></span>
+          </span>
           <div class="rpm-label">Temperatura</div>
           <div class="temp-value" id="tempVal">--.-°C</div>
-          <div class="sub-readout" id="alvoInfo">Alvo: 40.0°C (+0.5°C)</div>
+          <div class="sub-readout" id="alvoInfo">Alvo: 40.0°C (Limite 40.2°C)</div>
         </div>
       </div>
-    </div>
-
-    <div class="temp-ctrl-box">
-      <div class="temp-ctrl-top">
-        <span>Corte Térmico (+0,5°C)</span>
-        <span class="led-housing" title="Estado da saída térmica">
-          <span class="virtual-led" id="relayLed"></span>
-        </span>
-      </div>
-      <div class="temp-input-row">
-        <div class="temp-input-wrap">
-          <input type="number" id="tempAlvoInput" min="-10" max="120" step="0.5" value="40.0" aria-label="Temperatura alvo">
-          <span>°C</span>
-        </div>
-        <button type="button" class="btn-go" id="btnApplyTemp">SALVAR °C</button>
-      </div>
-    </div>
-
-    <div class="cal-info">
-      Partida Calibrada: <strong id="partidaSalva">1200</strong> µs
     </div>
 
     <div class="mixer-area">
@@ -713,13 +915,8 @@
         <div class="fader-track">
           <div class="fader-fill" id="faderFill"></div>
         </div>
-        <input type="range" min="0" max="100" value="0" class="vertical-fader" id="fader">
+        <input type="range" min="0" max="100" value="0" class="vertical-fader" id="fader" aria-label="Velocidade">
       </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn-cal" id="btnCal">CALIBRAR</button>
-      <button class="btn-save" id="btnSave" disabled>SALVAR PARTIDA</button>
     </div>
 
     <div class="action-row">
@@ -730,18 +927,92 @@
     <div class="status-msg" id="statusMsg">Conectando ao broker.emqx.io...</div>
   </div>
 
+  <!-- ===== Janela de configurações ===== -->
+  <div class="modal-backdrop" id="settingsModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="modal-head">
+        <span class="modal-title" id="settingsTitle">Configurações</span>
+        <button type="button" class="btn-close" id="btnCloseSettings" aria-label="Fechar configurações">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <section class="set-card">
+          <div class="set-title" id="janelaTitulo">Limite Térmico (+0,2°C)</div>
+          <div class="temp-input-row">
+            <div class="temp-field-group">
+              <span class="temp-mini-label">Alvo</span>
+              <div class="temp-input-wrap">
+                <input type="number" id="tempAlvoInput" min="-10" max="120" step="0.1" value="40.0" aria-label="Temperatura alvo">
+                <span>°C</span>
+              </div>
+            </div>
+            <div class="temp-field-group">
+              <span class="temp-mini-label">Janela</span>
+              <div class="temp-input-wrap">
+                <input type="number" id="tempJanelaInput" min="0.1" max="50" step="0.1" value="0.2" aria-label="Janela de temperatura">
+                <span>°C</span>
+              </div>
+            </div>
+            <button type="button" class="btn-go btn-save-temp" id="btnApplyTemp">SALVAR</button>
+          </div>
+        </section>
+
+        <section class="set-card">
+          <div class="set-title">Ciclo de Gás</div>
+          <div class="temp-input-row">
+            <div class="temp-field-group">
+              <span class="temp-mini-label">Tempo desligado</span>
+              <div class="temp-input-wrap">
+                <input type="number" id="tempoOffInput" min="0" max="86400" step="0.5" value="0" aria-label="Tempo de gás desligado em segundos">
+                <span>s</span>
+              </div>
+            </div>
+            <div class="temp-field-group">
+              <span class="temp-mini-label">Tempo ligado</span>
+              <div class="temp-input-wrap">
+                <input type="number" id="tempoOnInput" min="0" max="86400" step="0.5" value="0" aria-label="Tempo de gás ligado em segundos">
+                <span>s</span>
+              </div>
+            </div>
+            <button type="button" class="btn-go btn-save-temp" id="btnApplyCiclo">SALVAR</button>
+          </div>
+          <div class="ciclo-status"><span class="ciclo-dot" id="cicloDot"></span><span id="cicloStatus">Saída GPIO 2: DESLIGADA</span></div>
+          <div class="cal-hint">Começa desligado, depois liga, e repete. Ligado = 0 mantém sempre desligado; Desligado = 0 mantém sempre ligado. Mínimo de 0,5 s.</div>
+        </section>
+
+        <section class="set-card">
+          <div class="set-title">Calibração da partida</div>
+          <div class="cal-info">Partida calibrada: <strong id="partidaSalva">1200</strong> µs</div>
+          <div class="cal-slider-row">
+            <div class="cal-us" id="calUsVal">1000 µs</div>
+            <input type="range" class="cal-slider" id="calFader" min="1000" max="2000" step="1" value="1000" disabled aria-label="Pulso de calibração em microssegundos">
+          </div>
+          <div class="cal-hint" id="calHint">Clique em CALIBRAR para liberar o controle de pulso.</div>
+          <div class="btn-row">
+            <button class="btn-cal" id="btnCal">CALIBRAR</button>
+            <button class="btn-save" id="btnSave" disabled>SALVAR PARTIDA</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-msg" id="modalMsg"></div>
+    </div>
+  </div>
+
   <script>
     const DEVICE_ID = "dengue_bpa6tfor";
     const BROKER_WSS = "wss://broker.emqx.io:8084/mqtt";
 
-    // Tópicos cadastrados (mesmos do ESP32)
-    const TOPIC_CMD_VEL       = "bldc/dengue_bpa6tfor/cmd/vel";
-    const TOPIC_CMD_CAL_MODE  = "bldc/dengue_bpa6tfor/cmd/cal_mode";
-    const TOPIC_CMD_CAL_SET   = "bldc/dengue_bpa6tfor/cmd/cal_set";
-    const TOPIC_CMD_CAL_SAVE  = "bldc/dengue_bpa6tfor/cmd/cal_save";
-    const TOPIC_CMD_TEMP_ALVO = "bldc/dengue_bpa6tfor/cmd/temp_alvo";
-    const TOPIC_STATE         = "bldc/dengue_bpa6tfor/state";
-    const TOPIC_STATUS        = "bldc/dengue_bpa6tfor/status";
+    const TOPIC_CMD_VEL         = "bldc/dengue_bpa6tfor/cmd/vel";
+    const TOPIC_CMD_CAL_MODE    = "bldc/dengue_bpa6tfor/cmd/cal_mode";
+    const TOPIC_CMD_CAL_SET     = "bldc/dengue_bpa6tfor/cmd/cal_set";
+    const TOPIC_CMD_CAL_SAVE    = "bldc/dengue_bpa6tfor/cmd/cal_save";
+    const TOPIC_CMD_TEMP_ALVO   = "bldc/dengue_bpa6tfor/cmd/temp_alvo";
+    const TOPIC_CMD_TEMP_JANELA = "bldc/dengue_bpa6tfor/cmd/temp_janela";
+    const TOPIC_CMD_TEMPO_OFF   = "bldc/dengue_bpa6tfor/cmd/tempo_off";
+    const TOPIC_CMD_TEMPO_ON    = "bldc/dengue_bpa6tfor/cmd/tempo_on";
+    const TOPIC_STATE           = "bldc/dengue_bpa6tfor/state";
+    const TOPIC_STATUS          = "bldc/dengue_bpa6tfor/status";
 
     const fader = document.getElementById('fader');
     const pctVal = document.getElementById('pctVal');
@@ -751,12 +1022,19 @@
     const faderFill = document.getElementById('faderFill');
     const rpmVal = document.getElementById('rpmVal');
     const pulsoInfo = document.getElementById('pulsoInfo');
-    const tempCard = document.getElementById('tempCard');
     const tempVal = document.getElementById('tempVal');
     const alvoInfo = document.getElementById('alvoInfo');
+    const janelaTitulo = document.getElementById('janelaTitulo');
     const relayLed = document.getElementById('relayLed');
     const tempAlvoInput = document.getElementById('tempAlvoInput');
+    const tempJanelaInput = document.getElementById('tempJanelaInput');
     const btnApplyTemp = document.getElementById('btnApplyTemp');
+    const tempoOffInput = document.getElementById('tempoOffInput');
+    const tempoOnInput = document.getElementById('tempoOnInput');
+    const btnApplyCiclo = document.getElementById('btnApplyCiclo');
+    const cicloDot = document.getElementById('cicloDot');
+    const gasLed = document.getElementById('gasLed');
+    const cicloStatus = document.getElementById('cicloStatus');
     const partidaSalva = document.getElementById('partidaSalva');
     const modeBadge = document.getElementById('modeBadge');
     const scaleMarks = document.getElementById('scaleMarks');
@@ -766,17 +1044,73 @@
     const btnPlayPause = document.getElementById('btnPlayPause');
     const mqttStatus = document.getElementById('mqttStatus');
     const statusMsg = document.getElementById('statusMsg');
+    const modalMsg = document.getElementById('modalMsg');
+    const calFader = document.getElementById('calFader');
+    const calUsVal = document.getElementById('calUsVal');
+    const calHint = document.getElementById('calHint');
+    const settingsModal = document.getElementById('settingsModal');
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const btnCloseSettings = document.getElementById('btnCloseSettings');
+
+    function setStatus(txt) {
+      statusMsg.textContent = txt;
+      modalMsg.textContent = txt;
+    }
+
+    function abrirConfig() {
+      settingsModal.classList.add('open');
+      settingsModal.setAttribute('aria-hidden', 'false');
+      btnCloseSettings.focus();
+    }
+    function fecharConfig() {
+      settingsModal.classList.remove('open');
+      settingsModal.setAttribute('aria-hidden', 'true');
+      btnOpenSettings.focus();
+    }
+    btnOpenSettings.addEventListener('click', abrirConfig);
+    btnCloseSettings.addEventListener('click', fecharConfig);
+    settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) fecharConfig(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && settingsModal.classList.contains('open')) fecharConfig();
+    });
+    modeBadge.addEventListener('click', () => { if (isCalibrando) abrirConfig(); });
 
     let isCalibrando = false;
     let segurandoFader = false;
     let bloquearEcoLocalAte = 0;
     let bloquearTempInputAte = 0;
+    let bloquearCicloInputAte = 0;
+    // Anti-eco: enquanto o ESP não confirmar o valor enviado, estados antigos são ignorados
+    let valorEsperado = null;
+    let valorEsperadoAte = 0;
+    let modoEsperado = null;
+    let modoEsperadoAte = 0;
     let ultimoEnvio = 0;
     let pendente = null;
 
-    // Controle Play / Pause preservando velocidade
+    let tempAlvoAtual = 40.0;
+    let tempJanelaAtual = 0.2;
+
     let estaPausado = false;
     let velocidadeMemorizada = 0;
+
+    function atualizarTextosTermicos(alvo, janela) {
+      tempAlvoAtual = alvo;
+      tempJanelaAtual = janela;
+      const limite = (alvo + janela).toFixed(1);
+      const janelaPt = janela.toFixed(1).replace('.', ',');
+      janelaTitulo.textContent = "Limite Térmico (+" + janelaPt + "°C)";
+      alvoInfo.textContent = "Alvo: " + alvo.toFixed(1) + "°C (Limite " + limite + "°C)";
+    }
+
+    // LED aceso quando saída está em ALTO (isHigh = true); apagado quando está em LOW (false)
+    function atualizarLedSaida(isHigh) {
+      if (isHigh) {
+        relayLed.classList.add("on");
+      } else {
+        relayLed.classList.remove("on");
+      }
+    }
 
     function sincronizarBotaoPlayPause() {
       if (estaPausado) {
@@ -806,6 +1140,10 @@
         sincronizarBotaoPlayPause();
         fader.min = 1000;
         fader.max = 2000;
+        fader.disabled = true;
+        calFader.disabled = false;
+        modeBadge.classList.add('clickable');
+        calHint.textContent = 'Suba o pulso até a hélice iniciar e clique em SALVAR PARTIDA.';
         pctInput.disabled = true;
         btnApplyPct.disabled = true;
         directBox.style.opacity = '0.45';
@@ -817,13 +1155,17 @@
         btnCal.textContent = 'SAIR CALIB.';
         btnCal.classList.add('active');
         btnSave.disabled = false;
-        statusMsg.textContent = 'Suba o fader até a hélice iniciar e clique em SALVAR PARTIDA.';
+        setStatus('Suba o fader até a hélice iniciar e clique em SALVAR PARTIDA.');
         if (valorInicial !== null) {
           atualizarVisual(valorInicial, true);
         }
       } else {
         fader.min = 0;
         fader.max = 100;
+        fader.disabled = false;
+        calFader.disabled = true;
+        modeBadge.classList.remove('clickable');
+        calHint.textContent = 'Clique em CALIBRAR para liberar o controle de pulso.';
         pctInput.disabled = false;
         btnApplyPct.disabled = false;
         directBox.style.opacity = '1';
@@ -835,7 +1177,7 @@
         btnCal.textContent = 'CALIBRAR';
         btnCal.classList.remove('active');
         btnSave.disabled = true;
-        statusMsg.textContent = 'Sincronizado via MQTT (todos os dispositivos).';
+        setStatus('Sincronizado via MQTT (todos os dispositivos).');
         if (valorInicial !== null) {
           atualizarVisual(valorInicial, true);
         }
@@ -847,7 +1189,8 @@
       if (isCalibrando) {
         const clamUs = Math.max(1000, Math.min(2000, rawVal));
         pctVal.textContent = clamUs + ' µs';
-        if (sincronizarFader) fader.value = clamUs;
+        calUsVal.textContent = clamUs + ' µs';
+        if (sincronizarFader) { fader.value = clamUs; calFader.value = clamUs; }
         const pctBarra = (clamUs - 1000) / 10;
         faderFill.style.height = Math.max(0, Math.min(100, pctBarra)) + '%';
       } else {
@@ -864,7 +1207,7 @@
     client.on('connect', () => {
       mqttStatus.textContent = "MQTT: ONLINE";
       mqttStatus.className = "conn-ok";
-      statusMsg.textContent = "Conectado ao broker.emqx.io";
+      setStatus("Conectado ao broker.emqx.io");
       client.subscribe([TOPIC_STATE, TOPIC_STATUS]);
     });
 
@@ -882,7 +1225,7 @@
       const txt = message.toString();
       if (topic === TOPIC_STATUS) {
         if (txt === "offline") {
-          statusMsg.textContent = "ESP32 offline no broker MQTT.";
+          setStatus("ESP32 offline no broker MQTT.");
         }
         return;
       }
@@ -893,27 +1236,54 @@
           rpmVal.textContent = d.rpm ?? 0;
           pulsoInfo.textContent = (d.pulso_us ?? 1000) + " µs";
 
-          if (typeof d.temp === "number" && !isNaN(d.temp)) {
+          const temTemp = (typeof d.temp === "number" && !isNaN(d.temp));
+          if (temTemp) {
             tempVal.textContent = d.temp.toFixed(1) + "°C";
           } else {
             tempVal.textContent = "--.-°C";
           }
 
-          if (typeof d.temp_alvo === "number" && !isNaN(d.temp_alvo)) {
-            const limiteCorte = (d.temp_alvo + 0.5).toFixed(1);
-            alvoInfo.textContent = "Alvo: " + d.temp_alvo.toFixed(1) + "°C (Corte " + limiteCorte + "°C)";
-            if (document.activeElement !== tempAlvoInput && Date.now() > bloquearTempInputAte) {
-              tempAlvoInput.value = d.temp_alvo.toFixed(1);
+          const bloqueioTermico = Date.now() < bloquearTempInputAte;
+          const novoAlvo = (typeof d.temp_alvo === "number" && !isNaN(d.temp_alvo)) ? d.temp_alvo : tempAlvoAtual;
+          const novaJanela = (typeof d.temp_janela === "number" && !isNaN(d.temp_janela) && d.temp_janela > 0) ? d.temp_janela : tempJanelaAtual;
+          if (!bloqueioTermico) {
+            atualizarTextosTermicos(novoAlvo, novaJanela);
+          }
+
+          if (!bloqueioTermico) {
+            if (document.activeElement !== tempAlvoInput) {
+              tempAlvoInput.value = novoAlvo.toFixed(1);
+            }
+            if (document.activeElement !== tempJanelaInput) {
+              tempJanelaInput.value = novaJanela.toFixed(1);
             }
           }
 
-          const isLow = !!d.rele_low;
-          if (isLow) {
-            relayLed.classList.add("on");
-            tempCard.classList.add("alert");
+          // Saída em ALTO = LED aceso; saída em LOW (acima do limite) = LED apagado
+          let isHigh;
+          if (typeof d.rele_high === "boolean") {
+            isHigh = d.rele_high;
+          } else if (typeof d.rele_low === "boolean") {
+            isHigh = !d.rele_low;
+          } else if (temTemp) {
+            isHigh = !(d.temp >= (novoAlvo + novaJanela));
           } else {
-            relayLed.classList.remove("on");
-            tempCard.classList.remove("alert");
+            isHigh = true;
+          }
+          atualizarLedSaida(isHigh);
+
+          if (typeof d.ciclo_on === "boolean") {
+            cicloDot.classList.toggle("on", d.ciclo_on);
+            gasLed.classList.toggle("on", d.ciclo_on);
+            cicloStatus.textContent = "Saída GPIO 2: " + (d.ciclo_on ? "LIGADA" : "DESLIGADA");
+          }
+          if (Date.now() > bloquearCicloInputAte) {
+            if (typeof d.t_off === "number" && document.activeElement !== tempoOffInput) {
+              tempoOffInput.value = d.t_off.toFixed(1);
+            }
+            if (typeof d.t_on === "number" && document.activeElement !== tempoOnInput) {
+              tempoOnInput.value = d.t_on.toFixed(1);
+            }
           }
 
           if (typeof d.partida_us === "number") {
@@ -921,6 +1291,13 @@
           }
 
           const novoCal = !!d.cal;
+          if (modoEsperado !== null) {
+            if (Date.now() > modoEsperadoAte || novoCal === modoEsperado) {
+              modoEsperado = null;
+            } else {
+              return; // estado antigo, ainda não refletiu o clique em CALIBRAR
+            }
+          }
           const mudouModoCal = (novoCal !== isCalibrando);
           const emInteracaoLocal = segurandoFader || (pendente !== null) || (Date.now() < bloquearEcoLocalAte);
 
@@ -930,6 +1307,14 @@
           }
 
           if (!emInteracaoLocal) {
+            const recebido = isCalibrando ? d.pulso_us : d.pct;
+            if (valorEsperado !== null) {
+              if (Date.now() > valorEsperadoAte || recebido === valorEsperado) {
+                valorEsperado = null;
+              } else {
+                return; // eco antigo: espera o ESP chegar no valor enviado
+              }
+            }
             if (isCalibrando && typeof d.pulso_us === "number") {
               atualizarVisual(d.pulso_us, true);
             } else if (!isCalibrando && typeof d.pct === "number") {
@@ -941,6 +1326,10 @@
     });
 
     function publicar(topico, valor) {
+      if (topico === TOPIC_CMD_VEL || topico === TOPIC_CMD_CAL_SET) {
+        valorEsperado = parseInt(valor, 10);
+        valorEsperadoAte = Date.now() + 2500;
+      }
       if (client && client.connected) {
         client.publish(topico, String(valor));
       }
@@ -973,27 +1362,77 @@
     }, 120);
 
     function salvarTemperaturaAlvo() {
-      let val = parseFloat(String(tempAlvoInput.value).replace(',', '.'));
-      if (isNaN(val)) val = 40.0;
-      val = Math.max(-10, Math.min(120, val));
-      tempAlvoInput.value = val.toFixed(1);
-      bloquearTempInputAte = Date.now() + 900;
-      publicar(TOPIC_CMD_TEMP_ALVO, val.toFixed(1));
-      statusMsg.textContent = "Temperatura alvo enviada: " + val.toFixed(1) + "°C (corte em " + (val + 0.5).toFixed(1) + "°C)";
+      let alvo = parseFloat(String(tempAlvoInput.value).replace(',', '.'));
+      if (isNaN(alvo)) alvo = 40.0;
+      alvo = Math.max(-10, Math.min(120, alvo));
+
+      let janela = parseFloat(String(tempJanelaInput.value).replace(',', '.'));
+      if (isNaN(janela)) janela = 0.2;
+      janela = Math.max(0.1, Math.min(50, janela));
+
+      tempAlvoInput.value = alvo.toFixed(1);
+      tempJanelaInput.value = janela.toFixed(1);
+      atualizarTextosTermicos(alvo, janela);
+      bloquearTempInputAte = Date.now() + 1500;
+
+      publicar(TOPIC_CMD_TEMP_ALVO, alvo.toFixed(1));
+      publicar(TOPIC_CMD_TEMP_JANELA, janela.toFixed(1));
+      setStatus("Alvo " + alvo.toFixed(1) + "°C • Janela +" + janela.toFixed(1) + "°C (Limite " + (alvo + janela).toFixed(1) + "°C)");
     }
 
-    tempAlvoInput.addEventListener('focus', () => {
-      bloquearTempInputAte = Date.now() + 2000;
-    });
-    tempAlvoInput.addEventListener('keydown', (e) => {
-      bloquearTempInputAte = Date.now() + 2000;
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        salvarTemperaturaAlvo();
-        tempAlvoInput.blur();
-      }
+    [tempAlvoInput, tempJanelaInput].forEach((inp) => {
+      inp.addEventListener('focus', () => {
+        bloquearTempInputAte = Date.now() + 2000;
+      });
+      inp.addEventListener('keydown', (e) => {
+        bloquearTempInputAte = Date.now() + 2000;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          salvarTemperaturaAlvo();
+          inp.blur();
+        }
+      });
     });
     btnApplyTemp.addEventListener('click', salvarTemperaturaAlvo);
+
+    function lerSegundos(input) {
+      let v = parseFloat(String(input.value).replace(',', '.'));
+      if (isNaN(v) || v < 0) v = 0;
+      if (v > 0 && v < 0.5) v = 0.5;
+      return Math.min(86400, v);
+    }
+
+    function salvarCiclo() {
+      const off = lerSegundos(tempoOffInput);
+      const on = lerSegundos(tempoOnInput);
+      tempoOffInput.value = off.toFixed(1);
+      tempoOnInput.value = on.toFixed(1);
+      bloquearCicloInputAte = Date.now() + 1500;
+
+      publicar(TOPIC_CMD_TEMPO_OFF, off.toFixed(1));
+      publicar(TOPIC_CMD_TEMPO_ON, on.toFixed(1));
+
+      if (on === 0) {
+        setStatus("Ciclo: saída sempre desligada (ligado = 0).");
+      } else if (off === 0) {
+        setStatus("Ciclo: saída sempre ligada (desligado = 0).");
+      } else {
+        setStatus("Ciclo: desligado " + off.toFixed(1) + " s • ligado " + on.toFixed(1) + " s.");
+      }
+    }
+
+    [tempoOffInput, tempoOnInput].forEach((inp) => {
+      inp.addEventListener('focus', () => { bloquearCicloInputAte = Date.now() + 2000; });
+      inp.addEventListener('keydown', (e) => {
+        bloquearCicloInputAte = Date.now() + 2000;
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          salvarCiclo();
+          inp.blur();
+        }
+      });
+    });
+    btnApplyCiclo.addEventListener('click', salvarCiclo);
 
     function aplicarDigitadoPct() {
       if (isCalibrando) return;
@@ -1061,19 +1500,37 @@
       enviarControle(e.target.value, true);
     });
 
+    calFader.addEventListener('pointerdown', iniciarArraste);
+    calFader.addEventListener('touchstart', iniciarArraste, { passive: true });
+    calFader.addEventListener('mousedown', iniciarArraste);
+    ['pointerup', 'touchend', 'mouseup', 'pointercancel'].forEach((ev) => {
+      calFader.addEventListener(ev, finalizarArraste);
+    });
+    calFader.addEventListener('input', (e) => {
+      segurandoFader = true;
+      enviarControle(e.target.value, false);
+    });
+    calFader.addEventListener('change', (e) => {
+      segurandoFader = false;
+      enviarControle(e.target.value, true);
+    });
+
     btnCal.addEventListener('click', () => {
       const proximoModo = !isCalibrando;
       pausarEcoLocal(300);
+      valorEsperado = null;
+      modoEsperado = proximoModo;
+      modoEsperadoAte = Date.now() + 3000;
       aplicarEscalaVisual(proximoModo, proximoModo ? 1000 : 0);
       publicar(TOPIC_CMD_CAL_MODE, proximoModo ? "1" : "0");
     });
 
     btnSave.addEventListener('click', () => {
-      const usAtual = parseInt(fader.value, 10) || 1200;
+      const usAtual = parseInt(calFader.value, 10) || 1200;
       pausarEcoLocal(300);
       partidaSalva.textContent = usAtual;
       publicar(TOPIC_CMD_CAL_SAVE, usAtual);
-      statusMsg.textContent = "Partida enviada para salvar em " + usAtual + " µs!";
+      setStatus("Partida enviada para salvar em " + usAtual + " µs!");
     });
 
     btnStop.addEventListener('click', () => {
@@ -1090,7 +1547,7 @@
         pctInput.value = 0;
         atualizarVisual(0, true);
         publicar(TOPIC_CMD_VEL, 0);
-        statusMsg.textContent = "Zerado (0%).";
+        setStatus("Zerado (0%).");
       }
     });
 
@@ -1103,7 +1560,7 @@
       if (!estaPausado) {
         const atual = Math.max(0, Math.min(100, parseInt(fader.value, 10) || parseInt(pctInput.value, 10) || 0));
         if (atual === 0) {
-          statusMsg.textContent = "Velocidade já está em 0% para pausar.";
+          setStatus("Velocidade já está em 0% para pausar.");
           return;
         }
         velocidadeMemorizada = atual;
@@ -1112,7 +1569,7 @@
         pctInput.value = 0;
         atualizarVisual(0, true);
         publicar(TOPIC_CMD_VEL, 0);
-        statusMsg.textContent = "Pausado (0%). Velocidade salva: " + velocidadeMemorizada + "%.";
+        setStatus("Pausado (0%). Velocidade salva: " + velocidadeMemorizada + "%.");
       } else {
         const alvoRetorno = velocidadeMemorizada > 0 ? velocidadeMemorizada : 0;
         estaPausado = false;
@@ -1120,7 +1577,7 @@
         pctInput.value = alvoRetorno;
         atualizarVisual(alvoRetorno, true);
         publicar(TOPIC_CMD_VEL, alvoRetorno);
-        statusMsg.textContent = "Retomado em " + alvoRetorno + "%.";
+        setStatus("Retomado em " + alvoRetorno + "%.");
       }
     });
   </script>
